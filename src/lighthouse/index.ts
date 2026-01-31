@@ -9,24 +9,9 @@
 import type {
   LHCIAssertions,
   LHCIConfig,
-  LHCIMethod,
   LHCIOptions,
   PerformanceThresholds,
-  Strategy,
 } from "../types";
-
-/**
- * Default Lighthouse CI configuration
- */
-const DEFAULT_CONFIG: Partial<LHCIConfig["ci"]> = {
-  collect: {
-    url: [],
-    numberOfRuns: 3,
-    settings: {
-      preset: "mobile",
-    },
-  },
-};
 
 /**
  * Lighthouse CI Runner for programmatic execution
