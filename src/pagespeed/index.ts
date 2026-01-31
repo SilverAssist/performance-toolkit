@@ -70,7 +70,7 @@ export class PageSpeedClient {
 
     const apiUrl = this.buildApiUrl(url, strategy, categories, apiKey);
     const response = await this.fetchWithTimeout(apiUrl, timeout);
-    const data: PageSpeedResponse = await response.json();
+    const data = (await response.json()) as PageSpeedResponse;
 
     return this.transformResponse(data, url, strategy);
   }
