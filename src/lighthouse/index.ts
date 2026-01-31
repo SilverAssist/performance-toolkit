@@ -144,7 +144,7 @@ export class LighthouseRunner {
   async run(): Promise<number> {
     // Dynamic import to avoid requiring @lhci/cli at module load time
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
+       
       const { autorun } = await import("@lhci/cli");
 
       // Run with the ci config
