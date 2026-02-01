@@ -1,9 +1,11 @@
 /**
- * Configuration Types
+ * @silverassist/performance-toolkit
  *
- * Types for thresholds, project configuration, and toolkit settings
+ * Configuration and threshold type definitions.
  *
- * @packageDocumentation
+ * @module types/config
+ * @author Miguel Colmenares <me@miguelcolmenares.com>
+ * @license PolyForm-Noncommercial-1.0.0
  */
 
 import type { Strategy, Category } from "../pagespeed";

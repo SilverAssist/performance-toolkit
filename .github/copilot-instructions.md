@@ -120,3 +120,88 @@ createPSIRunner(urls, key)
 - `PAGESPEED_API_KEY` - Google API key for higher rate limits
 - Node >= 18.0.0 required
 - `@lhci/cli` is optional peer dependency (only needed for Lighthouse runner)
+
+## File Header Standards (JSDoc)
+
+All TypeScript files must include a standardized JSDoc header. This ensures consistent documentation across the codebase.
+
+### Required Tags
+
+| Tag | Purpose |
+|-----|---------|
+| `@module` | Module path following DDD structure (e.g., `pagespeed/client`) |
+| `@author` | Author with email |
+| `@license` | SPDX-like identifier: `PolyForm-Noncommercial-1.0.0` |
+| `@see` | Only in main entry point, link to repository |
+
+### Header Templates
+
+**Main entry point (`src/index.ts`):**
+```typescript
+/**
+ * @silverassist/performance-toolkit
+ *
+ * PageSpeed Insights and Lighthouse CI integration for performance monitoring
+ * across SilverAssist projects (FamilyAssets, CareConnect, AgingAdvocate, OSA).
+ *
+ * @module @silverassist/performance-toolkit
+ * @author Miguel Colmenares <me@miguelcolmenares.com>
+ * @license PolyForm-Noncommercial-1.0.0
+ * @see {@link https://github.com/SilverAssist/performance-toolkit}
+ */
+```
+
+**Domain modules (`src/[domain]/index.ts`):**
+```typescript
+/**
+ * @silverassist/performance-toolkit
+ *
+ * [Brief description of the module's purpose]
+ *
+ * @module [domain]
+ * @author Miguel Colmenares <me@miguelcolmenares.com>
+ * @license PolyForm-Noncommercial-1.0.0
+ */
+```
+
+**Internal files (`src/[domain]/[file].ts`):**
+```typescript
+/**
+ * @silverassist/performance-toolkit
+ *
+ * [Brief description of the file's purpose]
+ *
+ * @module [domain]/[file]
+ * @author Miguel Colmenares <me@miguelcolmenares.com>
+ * @license PolyForm-Noncommercial-1.0.0
+ */
+```
+
+**Type definitions (`src/types/[domain]/index.ts`):**
+```typescript
+/**
+ * @silverassist/performance-toolkit
+ *
+ * [Domain] type definitions.
+ *
+ * @module types/[domain]
+ * @author Miguel Colmenares <me@miguelcolmenares.com>
+ * @license PolyForm-Noncommercial-1.0.0
+ */
+```
+
+### Module Naming Convention
+
+Follow the file path from `src/`:
+- `src/index.ts` → `@module @silverassist/performance-toolkit`
+- `src/pagespeed/index.ts` → `@module pagespeed`
+- `src/pagespeed/client.ts` → `@module pagespeed/client`
+- `src/types/metrics/index.ts` → `@module types/metrics`
+
+### Notes
+
+- **Do NOT use** `@packageDocumentation` (TypeDoc-specific, not standard JSDoc)
+- First line is always the package name for quick identification
+- Second paragraph is a brief description of the file's purpose
+- Keep descriptions concise (1-2 sentences max)
+

@@ -1,10 +1,11 @@
 /**
- * @silverassist/performance-toolkit - Types
+ * @silverassist/performance-toolkit
  *
- * Type definitions for PageSpeed Insights API and Lighthouse CI integration.
- * Organized by domain following DDD pattern.
+ * Type definitions organized by domain following DDD pattern.
  *
- * @packageDocumentation
+ * @module types
+ * @author Miguel Colmenares <me@miguelcolmenares.com>
+ * @license PolyForm-Noncommercial-1.0.0
  */
 
 // =============================================================================
@@ -79,11 +80,7 @@ export type {
 } from "./report";
 
 // CLI Domain - Command-line interface
-export type {
-  CLIOptions,
-  ThresholdViolation,
-  CLIResult,
-} from "./cli";
+export type { CLIOptions, ThresholdViolation, CLIResult } from "./cli";
 
 // Config Domain - Thresholds and configuration
 export type {

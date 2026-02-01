@@ -1,9 +1,11 @@
 /**
- * CLI Types
+ * @silverassist/performance-toolkit
  *
- * Types for command-line interface options and results
+ * CLI options and result type definitions.
  *
- * @packageDocumentation
+ * @module types/cli
+ * @author Miguel Colmenares <me@miguelcolmenares.com>
+ * @license PolyForm-Noncommercial-1.0.0
  */
 
 import type { Strategy, Category } from "../pagespeed";

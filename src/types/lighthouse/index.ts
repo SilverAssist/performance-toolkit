@@ -1,9 +1,11 @@
 /**
- * Lighthouse CI Types
+ * @silverassist/performance-toolkit
  *
- * Types for Lighthouse CI (@lhci/cli) integration
+ * Lighthouse CI type definitions.
  *
- * @packageDocumentation
+ * @module types/lighthouse
+ * @author Miguel Colmenares <me@miguelcolmenares.com>
+ * @license PolyForm-Noncommercial-1.0.0
  */
 
 import type { Strategy } from "../pagespeed";

@@ -9,6 +9,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+#### Module Refactoring (DDD Pattern)
+
+- **Refactored `src/pagespeed/` module** - Split monolithic 814-line file into 6 focused modules:
+  - `constants.ts` - API URLs, timeouts, audit IDs, third-party patterns
+  - `utils.ts` - Formatting helpers (cache TTL, URL truncation, entity extraction)
+  - `extractors.ts` - Score, metric, LCP, opportunity, diagnostic extractors
+  - `insights.ts` - Detailed insights for AI agents (cache, images, JS, third-parties)
+  - `client.ts` - PageSpeedClient class and factory functions
+  - `index.ts` - Barrel exports for public API
+
+- **Refactored `src/report/` module** - Split monolithic 959-line file into 6 focused modules:
+  - `utils.ts` - Formatting and severity calculation helpers
+  - `diagnostics.ts` - Diagnostics table generation
+  - `lcp.ts` - LCP analysis and recommendations
+  - `opportunities.ts` - Key opportunities with framework-specific guidance
+  - `generator.ts` - ActionableReportGenerator class
+  - `index.ts` - Barrel exports for public API
+
+- **Refactored `bin/cli.js`** - Applied DRY principles to 1350+ line CLI:
+  - Added global constants for colors/emojis (SEVERITY_*, IMPACT_*, STATUS_*, URGENCY_*)
+  - Added helper functions: `getSeverityStyle()`, `getImpactStyle()`, `getStatusStyle()`
+  - Added print helpers: `printSectionHeader()`, `printSectionFooter()`, `printLabeledValue()`, etc.
+  - Refactored all major print functions to use shared helpers
+
+#### JSDoc Header Standardization
+
+- **Standardized file headers** across all TypeScript files (24 files updated):
+  - Replaced `@packageDocumentation` with standard JSDoc tags
+  - Added `@module` following DDD path structure (e.g., `pagespeed/client`)
+  - Added `@author` with email
+  - Added `@license PolyForm-Noncommercial-1.0.0`
+  - Added `@see` link to repository (main entry point only)
+  - Documented standards in `.github/copilot-instructions.md`
+
 #### Types Refactoring (DDD Pattern)
 
 - **Reorganized `src/types/` folder** following Domain-Driven Design pattern with barrel exports
@@ -22,7 +56,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `cli/` - CLIOptions, CLIResult, ThresholdViolation
   - `config/` - PerformanceThresholds, ProjectConfig, ToolkitConfig
 - Main `index.ts` now re-exports all domains using `export type {}` pattern
-- Added JSDoc `@packageDocumentation` to each domain module
 - **Backward compatible** - existing imports continue to work
 
 #### Project Organization

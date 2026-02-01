@@ -1,16 +1,14 @@
 /**
- * Project Context Detector
+ * @silverassist/performance-toolkit
  *
- * Analyzes user's project to detect technology stack, framework,
- * and architecture patterns for contextual performance recommendations.
+ * Project context detector for analyzing technology stack and patterns.
  *
- * @packageDocumentation
+ * @module context
+ * @author Miguel Colmenares <me@miguelcolmenares.com>
+ * @license PolyForm-Noncommercial-1.0.0
  */
 
-import type {
-  FrameworkInfo,
-  ProjectContext,
-} from "../types";
+import type { FrameworkInfo, ProjectContext } from "../types";
 
 /**
  * Project context detector for analyzing user's technology stack
@@ -68,9 +66,9 @@ export class ProjectContextDetector {
       // Dynamic import for fs (works in both Node and edge environments)
       const fs = await import("fs");
       const path = await import("path");
-      
+
       const packagePath = path.join(this.projectRoot, "package.json");
-      
+
       if (fs.existsSync(packagePath)) {
         const content = fs.readFileSync(packagePath, "utf-8");
         this.packageJson = JSON.parse(content) as PackageJson;
@@ -86,8 +84,6 @@ export class ProjectContextDetector {
    */
   private detectFramework(): FrameworkInfo | null {
     if (!this.packageJson) return null;
-
-    const deps = this.getAllDependencies();
 
     // Next.js detection
     if (this.hasDependency("next")) {
@@ -129,7 +125,9 @@ export class ProjectContextDetector {
       return {
         name: "vue",
         version: this.getDependencyVersion("vue") || "unknown",
-        routerType: this.hasDependency("vue-router") ? "config-based" : undefined,
+        routerType: this.hasDependency("vue-router")
+          ? "config-based"
+          : undefined,
         renderingMode: "spa",
       };
     }
@@ -140,7 +138,9 @@ export class ProjectContextDetector {
         name: "angular",
         version: this.getDependencyVersion("@angular/core") || "unknown",
         routerType: "config-based",
-        renderingMode: this.hasDependency("@angular/platform-server") ? "ssr" : "spa",
+        renderingMode: this.hasDependency("@angular/platform-server")
+          ? "ssr"
+          : "spa",
       };
     }
 
@@ -149,7 +149,9 @@ export class ProjectContextDetector {
       return {
         name: "react",
         version: this.getDependencyVersion("react") || "unknown",
-        routerType: this.hasDependency("react-router-dom") ? "config-based" : undefined,
+        routerType: this.hasDependency("react-router-dom")
+          ? "config-based"
+          : undefined,
         renderingMode: "spa",
       };
     }
@@ -163,11 +165,14 @@ export class ProjectContextDetector {
   private detectNextJS(): FrameworkInfo {
     const version = this.getDependencyVersion("next") || "unknown";
     const majorVersion = this.parseMajorVersion(version);
-    
+
     // Detect features
     const features: string[] = [];
-    
-    if (this.hasDependency("next-auth") || this.hasDependency("@auth/nextjs-provider")) {
+
+    if (
+      this.hasDependency("next-auth") ||
+      this.hasDependency("@auth/nextjs-provider")
+    ) {
       features.push("auth");
     }
     if (this.hasDependency("@next/font") || this.hasDependency("next/font")) {
@@ -176,10 +181,13 @@ export class ProjectContextDetector {
     if (this.hasDependency("next-intl") || this.hasDependency("next-i18next")) {
       features.push("i18n");
     }
-    if (this.hasDependency("next-mdx-remote") || this.hasDependency("@next/mdx")) {
+    if (
+      this.hasDependency("next-mdx-remote") ||
+      this.hasDependency("@next/mdx")
+    ) {
       features.push("mdx");
     }
-    
+
     // Determine router type (app router available since Next 13.4+)
     // This is a heuristic - actual detection would require file system check
     const routerType: "app" | "pages" = majorVersion >= 14 ? "app" : "pages";
@@ -203,10 +211,11 @@ export class ProjectContextDetector {
    * Detects Nuxt specific configuration
    */
   private detectNuxt(): FrameworkInfo {
-    const version = this.getDependencyVersion("nuxt") || 
-                   this.getDependencyVersion("nuxt3") || 
-                   "unknown";
-    
+    const version =
+      this.getDependencyVersion("nuxt") ||
+      this.getDependencyVersion("nuxt3") ||
+      "unknown";
+
     return {
       name: "nuxt",
       version,
@@ -232,11 +241,14 @@ export class ProjectContextDetector {
    */
   private detectGatsby(): FrameworkInfo {
     const features: string[] = [];
-    
+
     if (this.hasDependency("gatsby-plugin-image")) {
       features.push("image-optimization");
     }
-    if (this.hasDependency("gatsby-source-contentful") || this.hasDependency("gatsby-source-sanity")) {
+    if (
+      this.hasDependency("gatsby-source-contentful") ||
+      this.hasDependency("gatsby-source-sanity")
+    ) {
       features.push("headless-cms");
     }
 
@@ -254,11 +266,12 @@ export class ProjectContextDetector {
    */
   private detectAstro(): FrameworkInfo {
     const features: string[] = [];
-    
+
     if (this.hasDependency("@astrojs/react")) features.push("react");
     if (this.hasDependency("@astrojs/vue")) features.push("vue");
     if (this.hasDependency("@astrojs/svelte")) features.push("svelte");
-    if (this.hasDependency("@astrojs/image")) features.push("image-optimization");
+    if (this.hasDependency("@astrojs/image"))
+      features.push("image-optimization");
 
     return {
       name: "astro",
@@ -299,10 +312,12 @@ export class ProjectContextDetector {
     }
 
     if (this.hasDependency("vite")) return "vite";
-    if (this.hasDependency("esbuild") && !this.hasDependency("vite")) return "esbuild";
-    if (this.hasDependency("rollup") && !this.hasDependency("vite")) return "rollup";
+    if (this.hasDependency("esbuild") && !this.hasDependency("vite"))
+      return "esbuild";
+    if (this.hasDependency("rollup") && !this.hasDependency("vite"))
+      return "rollup";
     if (this.hasDependency("webpack")) return "webpack";
-    
+
     // Next.js uses webpack by default
     if (this.hasDependency("next")) return "webpack";
 
@@ -315,9 +330,14 @@ export class ProjectContextDetector {
   private detectCSSSolution(): ProjectContext["cssSolution"] {
     if (this.hasDependency("tailwindcss")) return "tailwind";
     if (this.hasDependency("styled-components")) return "styled-components";
-    if (this.hasDependency("@emotion/react") || this.hasDependency("@emotion/styled")) return "emotion";
-    if (this.hasDependency("sass") || this.hasDependency("node-sass")) return "sass";
-    
+    if (
+      this.hasDependency("@emotion/react") ||
+      this.hasDependency("@emotion/styled")
+    )
+      return "emotion";
+    if (this.hasDependency("sass") || this.hasDependency("node-sass"))
+      return "sass";
+
     // CSS Modules is built into most frameworks, hard to detect without file analysis
     return null;
   }
@@ -326,9 +346,11 @@ export class ProjectContextDetector {
    * Detects if project uses TypeScript
    */
   private detectTypeScript(): boolean {
-    return this.hasDependency("typescript") || 
-           this.hasDependency("@types/node") ||
-           this.hasDependency("@types/react");
+    return (
+      this.hasDependency("typescript") ||
+      this.hasDependency("@types/node") ||
+      this.hasDependency("@types/react")
+    );
   }
 
   /**
@@ -347,22 +369,36 @@ export class ProjectContextDetector {
    */
   private detectAnalytics(): string[] {
     const analytics: string[] = [];
-    
-    if (this.hasDependency("@vercel/analytics")) analytics.push("Vercel Analytics");
-    if (this.hasDependency("@google-analytics/react-ga") || 
-        this.hasDependency("react-ga") ||
-        this.hasDependency("react-ga4")) analytics.push("Google Analytics");
-    if (this.hasDependency("@segment/analytics-next") || 
-        this.hasDependency("analytics-node")) analytics.push("Segment");
-    if (this.hasDependency("mixpanel-browser") || 
-        this.hasDependency("mixpanel")) analytics.push("Mixpanel");
+
+    if (this.hasDependency("@vercel/analytics"))
+      analytics.push("Vercel Analytics");
+    if (
+      this.hasDependency("@google-analytics/react-ga") ||
+      this.hasDependency("react-ga") ||
+      this.hasDependency("react-ga4")
+    )
+      analytics.push("Google Analytics");
+    if (
+      this.hasDependency("@segment/analytics-next") ||
+      this.hasDependency("analytics-node")
+    )
+      analytics.push("Segment");
+    if (
+      this.hasDependency("mixpanel-browser") ||
+      this.hasDependency("mixpanel")
+    )
+      analytics.push("Mixpanel");
     if (this.hasDependency("amplitude-js")) analytics.push("Amplitude");
-    if (this.hasDependency("posthog-js") || 
-        this.hasDependency("posthog-node")) analytics.push("PostHog");
-    if (this.hasDependency("@datadog/browser-rum")) analytics.push("Datadog RUM");
-    if (this.hasDependency("@sentry/nextjs") || 
-        this.hasDependency("@sentry/react")) analytics.push("Sentry");
-    
+    if (this.hasDependency("posthog-js") || this.hasDependency("posthog-node"))
+      analytics.push("PostHog");
+    if (this.hasDependency("@datadog/browser-rum"))
+      analytics.push("Datadog RUM");
+    if (
+      this.hasDependency("@sentry/nextjs") ||
+      this.hasDependency("@sentry/react")
+    )
+      analytics.push("Sentry");
+
     return analytics;
   }
 
@@ -371,13 +407,14 @@ export class ProjectContextDetector {
    */
   private detectThirdPartyIntegrations(): string[] {
     const integrations: string[] = [];
-    
+
     // Auth providers
     if (this.hasDependency("next-auth")) integrations.push("NextAuth");
     if (this.hasDependency("@auth0/nextjs-auth0")) integrations.push("Auth0");
     if (this.hasDependency("@clerk/nextjs")) integrations.push("Clerk");
     if (this.hasDependency("firebase")) integrations.push("Firebase");
-    if (this.hasDependency("@supabase/supabase-js")) integrations.push("Supabase");
+    if (this.hasDependency("@supabase/supabase-js"))
+      integrations.push("Supabase");
 
     // CMS
     if (this.hasDependency("@sanity/client")) integrations.push("Sanity");
@@ -386,7 +423,8 @@ export class ProjectContextDetector {
     if (this.hasDependency("@strapi/strapi")) integrations.push("Strapi");
 
     // E-commerce
-    if (this.hasDependency("@shopify/shopify-api")) integrations.push("Shopify");
+    if (this.hasDependency("@shopify/shopify-api"))
+      integrations.push("Shopify");
     if (this.hasDependency("@stripe/stripe-js")) integrations.push("Stripe");
 
     // Database/ORM
@@ -401,8 +439,11 @@ export class ProjectContextDetector {
    * Detects UI library
    */
   private detectUILibrary(): string | undefined {
-    if (this.hasDependency("@radix-ui/react-dialog") || 
-        this.hasDependency("@radix-ui/react-slot")) return "Radix UI";
+    if (
+      this.hasDependency("@radix-ui/react-dialog") ||
+      this.hasDependency("@radix-ui/react-slot")
+    )
+      return "Radix UI";
     if (this.hasDependency("@chakra-ui/react")) return "Chakra UI";
     if (this.hasDependency("@mantine/core")) return "Mantine";
     if (this.hasDependency("@mui/material")) return "Material UI";
@@ -479,7 +520,9 @@ interface PackageJson {
  * @param projectRoot - Root directory of the project
  * @returns ProjectContextDetector instance
  */
-export function createContextDetector(projectRoot?: string): ProjectContextDetector {
+export function createContextDetector(
+  projectRoot?: string,
+): ProjectContextDetector {
   return new ProjectContextDetector(projectRoot);
 }
 
@@ -488,7 +531,9 @@ export function createContextDetector(projectRoot?: string): ProjectContextDetec
  * @param projectRoot - Root directory of the project
  * @returns Detected project context
  */
-export async function detectProjectContext(projectRoot?: string): Promise<ProjectContext> {
+export async function detectProjectContext(
+  projectRoot?: string,
+): Promise<ProjectContext> {
   const detector = new ProjectContextDetector(projectRoot);
   return detector.detect();
 }

@@ -1,9 +1,11 @@
 /**
- * Lighthouse CI Runner
+ * @silverassist/performance-toolkit
  *
- * Wrapper for @lhci/cli providing programmatic access to Lighthouse CI
+ * Lighthouse CI runner - wrapper for @lhci/cli with fluent API.
  *
- * @packageDocumentation
+ * @module lighthouse
+ * @author Miguel Colmenares <me@miguelcolmenares.com>
+ * @license PolyForm-Noncommercial-1.0.0
  */
 
 import type {
@@ -83,28 +85,52 @@ export class LighthouseRunner {
     const assertions: LHCIAssertions = {};
 
     if (thresholds.performance !== undefined) {
-      assertions["categories:performance"] = ["error", { minScore: thresholds.performance / 100 }];
+      assertions["categories:performance"] = [
+        "error",
+        { minScore: thresholds.performance / 100 },
+      ];
     }
     if (thresholds.accessibility !== undefined) {
-      assertions["categories:accessibility"] = ["error", { minScore: thresholds.accessibility / 100 }];
+      assertions["categories:accessibility"] = [
+        "error",
+        { minScore: thresholds.accessibility / 100 },
+      ];
     }
     if (thresholds.bestPractices !== undefined) {
-      assertions["categories:best-practices"] = ["error", { minScore: thresholds.bestPractices / 100 }];
+      assertions["categories:best-practices"] = [
+        "error",
+        { minScore: thresholds.bestPractices / 100 },
+      ];
     }
     if (thresholds.seo !== undefined) {
-      assertions["categories:seo"] = ["error", { minScore: thresholds.seo / 100 }];
+      assertions["categories:seo"] = [
+        "error",
+        { minScore: thresholds.seo / 100 },
+      ];
     }
     if (thresholds.lcp !== undefined) {
-      assertions["largest-contentful-paint"] = ["error", { maxNumericValue: thresholds.lcp }];
+      assertions["largest-contentful-paint"] = [
+        "error",
+        { maxNumericValue: thresholds.lcp },
+      ];
     }
     if (thresholds.fcp !== undefined) {
-      assertions["first-contentful-paint"] = ["error", { maxNumericValue: thresholds.fcp }];
+      assertions["first-contentful-paint"] = [
+        "error",
+        { maxNumericValue: thresholds.fcp },
+      ];
     }
     if (thresholds.cls !== undefined) {
-      assertions["cumulative-layout-shift"] = ["error", { maxNumericValue: thresholds.cls }];
+      assertions["cumulative-layout-shift"] = [
+        "error",
+        { maxNumericValue: thresholds.cls },
+      ];
     }
     if (thresholds.tbt !== undefined) {
-      assertions["total-blocking-time"] = ["error", { maxNumericValue: thresholds.tbt }];
+      assertions["total-blocking-time"] = [
+        "error",
+        { maxNumericValue: thresholds.tbt },
+      ];
     }
 
     this.config.ci.assert = { assertions };
@@ -144,7 +170,6 @@ export class LighthouseRunner {
   async run(): Promise<number> {
     // Dynamic import to avoid requiring @lhci/cli at module load time
     try {
-       
       const { autorun } = await import("@lhci/cli");
 
       // Run with the ci config
@@ -154,7 +179,7 @@ export class LighthouseRunner {
       if ((error as NodeJS.ErrnoException).code === "MODULE_NOT_FOUND") {
         throw new Error(
           "Lighthouse CI (@lhci/cli) is not installed. " +
-            "Install it with: npm install -D @lhci/cli"
+            "Install it with: npm install -D @lhci/cli",
         );
       }
       throw error;
@@ -181,7 +206,7 @@ module.exports = ${JSON.stringify(this.config, null, 2)};
  */
 export function createNodeRunner(
   urls: string[],
-  options: Partial<Omit<LHCIOptions, "urls" | "method">> = {}
+  options: Partial<Omit<LHCIOptions, "urls" | "method">> = {},
 ): LighthouseRunner {
   return new LighthouseRunner({
     urls,
@@ -200,7 +225,7 @@ export function createNodeRunner(
 export function createPSIRunner(
   urls: string[],
   psiApiKey: string,
-  options: Partial<Omit<LHCIOptions, "urls" | "method" | "psiApiKey">> = {}
+  options: Partial<Omit<LHCIOptions, "urls" | "method" | "psiApiKey">> = {},
 ): LighthouseRunner {
   return new LighthouseRunner({
     urls,

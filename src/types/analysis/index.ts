@@ -1,13 +1,20 @@
 /**
- * Analysis & Diagnostics Types
+ * @silverassist/performance-toolkit
  *
- * Types for performance analysis results, diagnostics, and insights
+ * Analysis and diagnostics type definitions.
  *
- * @packageDocumentation
+ * @module types/analysis
+ * @author Miguel Colmenares <me@miguelcolmenares.com>
+ * @license PolyForm-Noncommercial-1.0.0
  */
 
 import type { CoreWebVitals, CategoryScores } from "../metrics";
-import type { Strategy, LoadingExperience, PageSpeedResponse, AuditDetails } from "../pagespeed";
+import type {
+  Strategy,
+  LoadingExperience,
+  PageSpeedResponse,
+  AuditDetails,
+} from "../pagespeed";
 
 // =============================================================================
 // LCP Element Types

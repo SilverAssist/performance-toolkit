@@ -33,7 +33,8 @@ const COLORS = {
   dim: "\x1b[2m",
 };
 
-const log = (msg, color = "reset") => console.log(`${COLORS[color]}${msg}${COLORS.reset}`);
+const log = (msg, color = "reset") =>
+  console.log(`${COLORS[color]}${msg}${COLORS.reset}`);
 const success = (msg) => log(`✅ ${msg}`, "green");
 const warn = (msg) => log(`⚠️  ${msg}`, "yellow");
 const error = (msg) => log(`❌ ${msg}`, "red");
@@ -45,31 +46,37 @@ const info = (msg) => log(`ℹ️  ${msg}`, "cyan");
  */
 function detectInstallationContext() {
   const packageRoot = path.resolve(__dirname, "..");
-  
+
   // Check if we're in a node_modules directory (properly installed)
   const isInNodeModules = packageRoot.includes("node_modules");
-  
+
   // Check for common npx cache patterns
-  const isNpxCache = packageRoot.includes("/_npx/") || 
-                     packageRoot.includes("\\_npx\\") ||
-                     packageRoot.includes("/.npm/_npx") ||
-                     packageRoot.includes("npx-") ||
-                     packageRoot.includes("/tmp/") ||
-                     packageRoot.includes("\\Temp\\");
-  
+  const isNpxCache =
+    packageRoot.includes("/_npx/") ||
+    packageRoot.includes("\\_npx\\") ||
+    packageRoot.includes("/.npm/_npx") ||
+    packageRoot.includes("npx-") ||
+    packageRoot.includes("/tmp/") ||
+    packageRoot.includes("\\Temp\\");
+
   // If in node_modules and not in npx cache, it's properly installed
   if (isInNodeModules && !isNpxCache) {
     return { isTemporary: false, installedPath: packageRoot };
   }
-  
+
   // Try to find if package is installed in the project's node_modules
   const projectRoot = findProjectRoot();
-  const localInstallPath = path.join(projectRoot, "node_modules", "@silverassist", "performance-toolkit");
-  
+  const localInstallPath = path.join(
+    projectRoot,
+    "node_modules",
+    "@silverassist",
+    "performance-toolkit",
+  );
+
   if (fs.existsSync(localInstallPath)) {
     return { isTemporary: false, installedPath: localInstallPath };
   }
-  
+
   // Running from npx temporary cache without local installation
   return { isTemporary: true, installedPath: null };
 }
@@ -103,12 +110,12 @@ function getTargetPath(projectRoot) {
  * Get the target paths for skills in the user's project
  */
 function getSkillsTargetPaths(projectRoot, packageSkillsPath) {
-  const skillDirs = fs.readdirSync(packageSkillsPath).filter(f => {
+  const skillDirs = fs.readdirSync(packageSkillsPath).filter((f) => {
     const fullPath = path.join(packageSkillsPath, f);
     return fs.statSync(fullPath).isDirectory();
   });
-  
-  return skillDirs.map(skillName => ({
+
+  return skillDirs.map((skillName) => ({
     name: skillName,
     source: path.join(packageSkillsPath, skillName),
     target: path.resolve(projectRoot, ".github", "skills", skillName),
@@ -120,14 +127,14 @@ function getSkillsTargetPaths(projectRoot, packageSkillsPath) {
  */
 function findProjectRoot() {
   let currentDir = process.cwd();
-  
+
   while (currentDir !== path.dirname(currentDir)) {
     if (fs.existsSync(path.join(currentDir, "package.json"))) {
       return currentDir;
     }
     currentDir = path.dirname(currentDir);
   }
-  
+
   return process.cwd();
 }
 
@@ -138,13 +145,13 @@ function copyDirectory(src, dest) {
   if (!fs.existsSync(dest)) {
     fs.mkdirSync(dest, { recursive: true });
   }
-  
+
   const entries = fs.readdirSync(src, { withFileTypes: true });
-  
+
   for (const entry of entries) {
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
-    
+
     if (entry.isDirectory()) {
       copyDirectory(srcPath, destPath);
     } else {
@@ -161,7 +168,7 @@ function isOurSymlink(targetPath, packagePromptsPath) {
     if (!fs.existsSync(targetPath)) return false;
     const stats = fs.lstatSync(targetPath);
     if (!stats.isSymbolicLink()) return false;
-    
+
     const linkTarget = fs.readlinkSync(targetPath);
     const resolvedTarget = path.resolve(path.dirname(targetPath), linkTarget);
     return resolvedTarget === packagePromptsPath;
@@ -179,15 +186,15 @@ function install(options = {}) {
   const context = detectInstallationContext();
   const targetPath = getTargetPath(projectRoot);
   const targetDir = path.dirname(targetPath);
-  
+
   let packagePromptsPath;
   let effectiveInstallPath;
-  
+
   // Check if we're installing into the package's own development directory
   // This happens when running the script directly during development
   const packageDir = path.resolve(__dirname, "..");
   const isSameDirectory = projectRoot === packageDir;
-  
+
   if (isSameDirectory) {
     const packageJsonPath = path.join(packageDir, "package.json");
     if (fs.existsSync(packageJsonPath)) {
@@ -205,33 +212,38 @@ function install(options = {}) {
       } catch {}
     }
   }
-  
+
   if (context.isTemporary) {
     // Running from npx without local installation
     console.log("");
     warn("Running from npx without package installed in project.");
     console.log("");
-    
+
     if (!copy) {
       warn("Symlinks require the package to be installed locally.");
-      warn("Symlinks to temporary npx cache would break when cache is cleared.");
+      warn(
+        "Symlinks to temporary npx cache would break when cache is cleared.",
+      );
       console.log("");
       info("Options:");
       console.log("  1. Install the package first, then run this command:");
       console.log("     npm install @silverassist/performance-toolkit");
       console.log("     npx perf-prompts install");
       console.log("");
-      console.log("  2. Or use --copy to copy files instead (won't auto-update):");
+      console.log(
+        "  2. Or use --copy to copy files instead (won't auto-update):",
+      );
       console.log("     npx perf-prompts install --copy");
       console.log("");
-      
-      const response = process.argv.includes("--yes") || process.argv.includes("-y");
+
+      const response =
+        process.argv.includes("--yes") || process.argv.includes("-y");
       if (!response) {
         info("Automatically using --copy mode for npx execution.");
         copy = true;
       }
     }
-    
+
     // Use the temporary path for copying
     packagePromptsPath = getPackagePromptsPath();
     effectiveInstallPath = path.resolve(__dirname, "..");
@@ -240,14 +252,16 @@ function install(options = {}) {
     effectiveInstallPath = context.installedPath;
     packagePromptsPath = getPackagePromptsPath(effectiveInstallPath);
   }
-  
+
   // Verify package prompts exist
   if (!fs.existsSync(packagePromptsPath)) {
     error(`Package prompts not found at: ${packagePromptsPath}`);
-    error("This might be a package installation issue. Try reinstalling the package.");
+    error(
+      "This might be a package installation issue. Try reinstalling the package.",
+    );
     process.exit(1);
   }
-  
+
   info(`Project root: ${projectRoot}`);
   info(`Package prompts: ${packagePromptsPath}`);
   info(`Target location: ${targetPath}`);
@@ -255,29 +269,29 @@ function install(options = {}) {
     info(`Install type: ${copy ? "copy" : "symlink"}`);
   }
   console.log("");
-  
+
   // Create .github directory if it doesn't exist
   if (!fs.existsSync(targetDir)) {
     fs.mkdirSync(targetDir, { recursive: true });
     info(`Created directory: ${targetDir}`);
   }
-  
+
   // Check if target already exists
   if (fs.existsSync(targetPath)) {
     const stats = fs.lstatSync(targetPath);
-    
+
     if (stats.isSymbolicLink()) {
       if (isOurSymlink(targetPath, packagePromptsPath)) {
         success("Prompts are already installed (symlink is up to date)");
         return;
       }
-      
+
       if (!force) {
         warn(`A symlink already exists at ${targetPath}`);
         warn("Use --force to replace it, or remove it manually first.");
         process.exit(1);
       }
-      
+
       fs.unlinkSync(targetPath);
       info("Removed existing symlink");
     } else if (stats.isDirectory()) {
@@ -287,18 +301,20 @@ function install(options = {}) {
         warn("Note: This will delete all files in that directory!");
         process.exit(1);
       }
-      
+
       fs.rmSync(targetPath, { recursive: true });
       info("Removed existing directory");
     }
   }
-  
+
   if (copy) {
     // Copy files
     copyDirectory(packagePromptsPath, targetPath);
     success(`Prompts copied to: ${targetPath}`);
     warn("Note: Copied prompts won't auto-update when the package is updated.");
-    warn("Run 'npx perf-prompts install' again after updates, or use symlinks instead.");
+    warn(
+      "Run 'npx perf-prompts install' again after updates, or use symlinks instead.",
+    );
   } else {
     // Create symlink
     try {
@@ -309,52 +325,60 @@ function install(options = {}) {
       info("Prompts will auto-update when you update the package!");
     } catch (err) {
       if (err.code === "EPERM" && process.platform === "win32") {
-        error("Symlink creation failed - Windows requires administrator privileges or Developer Mode.");
+        error(
+          "Symlink creation failed - Windows requires administrator privileges or Developer Mode.",
+        );
         info("Alternatives:");
         info("  1. Run as Administrator");
         info("  2. Enable Developer Mode in Windows Settings");
-        info("  3. Use --copy flag to copy files instead: npx perf-prompts install --copy");
+        info(
+          "  3. Use --copy flag to copy files instead: npx perf-prompts install --copy",
+        );
         process.exit(1);
       }
       throw err;
     }
   }
-  
+
   console.log("");
   success("Prompts installation complete!");
   console.log("");
   log("Available prompts:", "cyan");
-  
-  const prompts = fs.readdirSync(packagePromptsPath).filter(f => f.endsWith(".prompt.md"));
-  prompts.forEach(p => {
+
+  const prompts = fs
+    .readdirSync(packagePromptsPath)
+    .filter((f) => f.endsWith(".prompt.md"));
+  prompts.forEach((p) => {
     const name = p.replace(".prompt.md", "");
     console.log(`  • ${name}`);
   });
-  
+
   // Install skills if requested
   if (skills) {
     console.log("");
     log("Installing Agent Skills...", "cyan");
     console.log("");
-    
+
     const packageSkillsPath = getPackageSkillsPath(effectiveInstallPath);
-    
+
     if (!fs.existsSync(packageSkillsPath)) {
       warn("Skills directory not found in package");
     } else {
       const skillTargets = getSkillsTargetPaths(projectRoot, packageSkillsPath);
       const skillsDir = path.resolve(projectRoot, ".github", "skills");
-      
+
       // Create skills directory if needed
       if (!fs.existsSync(skillsDir)) {
         fs.mkdirSync(skillsDir, { recursive: true });
       }
-      
+
       for (const skill of skillTargets) {
         // Check if skill already exists
         if (fs.existsSync(skill.target)) {
           if (!force) {
-            warn(`Skill '${skill.name}' already exists, skipping (use --force to replace)`);
+            warn(
+              `Skill '${skill.name}' already exists, skipping (use --force to replace)`,
+            );
             continue;
           }
           const stats = fs.lstatSync(skill.target);
@@ -364,7 +388,7 @@ function install(options = {}) {
             fs.rmSync(skill.target, { recursive: true });
           }
         }
-        
+
         if (copy) {
           copyDirectory(skill.source, skill.target);
           success(`Skill '${skill.name}' copied`);
@@ -374,30 +398,34 @@ function install(options = {}) {
           success(`Skill '${skill.name}' linked`);
         }
       }
-      
+
       console.log("");
       log("Available skills:", "cyan");
-      skillTargets.forEach(s => {
+      skillTargets.forEach((s) => {
         console.log(`  • ${s.name}`);
       });
-      
+
       console.log("");
       info("Skills are loaded automatically by Copilot when relevant.");
       info("Enable with: chat.useAgentSkills setting in VS Code.");
     }
   }
-  
+
   console.log("");
   success("Installation complete!");
   console.log("");
   log("Usage in VS Code:", "cyan");
-  console.log("  @workspace /performance/analyze-performance https://your-site.com");
+  console.log(
+    "  @workspace /performance/analyze-performance https://your-site.com",
+  );
   console.log("  @workspace /performance/optimize-lcp");
   console.log("  @workspace /performance/nextjs-performance");
-  
+
   if (!skills) {
     console.log("");
-    info("Tip: Add --skills to also install Agent Skills (auto-loaded by Copilot)");
+    info(
+      "Tip: Add --skills to also install Agent Skills (auto-loaded by Copilot)",
+    );
     console.log("  npx perf-prompts install --skills");
   }
 }
@@ -409,14 +437,14 @@ function uninstall(options = {}) {
   const { skills = false } = options;
   const projectRoot = findProjectRoot();
   const targetPath = getTargetPath(projectRoot);
-  
+
   let removedPrompts = false;
   let removedSkills = false;
-  
+
   // Remove prompts
   if (fs.existsSync(targetPath)) {
     const stats = fs.lstatSync(targetPath);
-    
+
     if (stats.isSymbolicLink()) {
       fs.unlinkSync(targetPath);
       success("Prompts symlink removed");
@@ -426,12 +454,12 @@ function uninstall(options = {}) {
     }
     removedPrompts = true;
   }
-  
+
   // Remove skills if requested
   if (skills) {
     const skillsDir = path.resolve(projectRoot, ".github", "skills");
     const ourSkills = ["nextjs-performance", "web-performance-analysis"];
-    
+
     for (const skillName of ourSkills) {
       const skillPath = path.join(skillsDir, skillName);
       if (fs.existsSync(skillPath)) {
@@ -446,12 +474,12 @@ function uninstall(options = {}) {
       }
     }
   }
-  
+
   if (!removedPrompts && !removedSkills) {
     info("Nothing to remove (prompts/skills not installed)");
     return;
   }
-  
+
   success("Uninstallation complete!");
 }
 
@@ -462,21 +490,21 @@ function status() {
   const projectRoot = findProjectRoot();
   const context = detectInstallationContext();
   const targetPath = getTargetPath(projectRoot);
-  
+
   // Get the correct prompts path based on installation context
-  const packagePromptsPath = context.installedPath 
+  const packagePromptsPath = context.installedPath
     ? getPackagePromptsPath(context.installedPath)
     : getPackagePromptsPath();
-  
+
   console.log("");
   log("Performance Toolkit Prompts Status", "cyan");
   console.log("─".repeat(40));
   console.log("");
-  
+
   console.log(`Project root:     ${projectRoot}`);
   console.log(`Target location:  ${targetPath}`);
   console.log("");
-  
+
   // Show package installation status
   if (context.isTemporary) {
     warn("Package: NOT INSTALLED (running from npx cache)");
@@ -487,7 +515,7 @@ function status() {
     console.log(`Prompts source: ${packagePromptsPath}`);
   }
   console.log("");
-  
+
   if (!fs.existsSync(targetPath)) {
     warn("Prompts Status: NOT INSTALLED");
     console.log("");
@@ -499,23 +527,25 @@ function status() {
     }
     return;
   }
-  
+
   const stats = fs.lstatSync(targetPath);
-  
+
   if (stats.isSymbolicLink()) {
     const linkTarget = fs.readlinkSync(targetPath);
     const resolvedTarget = path.resolve(path.dirname(targetPath), linkTarget);
-    
+
     // Check if symlink target exists
     if (!fs.existsSync(resolvedTarget)) {
       error("Prompts Status: BROKEN SYMLINK ❌");
       console.log(`  Symlink target: ${linkTarget}`);
       warn("The symlink target no longer exists!");
-      info("This can happen if the package was uninstalled or npx cache was cleared.");
+      info(
+        "This can happen if the package was uninstalled or npx cache was cleared.",
+      );
       info("Fix with: npx perf-prompts install --force");
       return;
     }
-    
+
     if (isOurSymlink(targetPath, packagePromptsPath)) {
       success("Prompts Status: INSTALLED (symlink) ✓");
       console.log(`  Symlink target: ${linkTarget}`);
@@ -529,28 +559,30 @@ function status() {
     warn("Prompts Status: INSTALLED (copied files)");
     info("Prompts won't auto-update. Re-run install after package updates.");
   }
-  
+
   console.log("");
   log("Available prompts:", "cyan");
-  
+
   try {
-    const prompts = fs.readdirSync(targetPath).filter(f => f.endsWith(".prompt.md"));
-    prompts.forEach(p => {
+    const prompts = fs
+      .readdirSync(targetPath)
+      .filter((f) => f.endsWith(".prompt.md"));
+    prompts.forEach((p) => {
       const name = p.replace(".prompt.md", "");
       console.log(`  • ${name}`);
     });
   } catch {
     warn("Could not list prompts");
   }
-  
+
   // Check skills status
   console.log("");
   log("Skills Status:", "cyan");
-  
+
   const skillsDir = path.resolve(projectRoot, ".github", "skills");
   const ourSkills = ["nextjs-performance", "web-performance-analysis"];
   let hasSkills = false;
-  
+
   for (const skillName of ourSkills) {
     const skillPath = path.join(skillsDir, skillName);
     if (fs.existsSync(skillPath)) {
@@ -563,7 +595,7 @@ function status() {
       }
     }
   }
-  
+
   if (!hasSkills) {
     info("  No performance skills installed");
     info("  Install with: npx perf-prompts install --skills");
@@ -611,7 +643,7 @@ Why symlinks?
 
 // Parse arguments
 const args = process.argv.slice(2);
-const command = args.find(a => !a.startsWith("-")) || "help";
+const command = args.find((a) => !a.startsWith("-")) || "help";
 const flags = {
   copy: args.includes("--copy") || args.includes("-c"),
   force: args.includes("--force") || args.includes("-f"),

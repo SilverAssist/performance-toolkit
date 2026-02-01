@@ -1,6 +1,11 @@
 /**
- * Type declarations for @lhci/cli
- * This package doesn't ship with TypeScript types
+ * @silverassist/performance-toolkit
+ *
+ * Type declarations for @lhci/cli (no bundled types).
+ *
+ * @module types/lhci
+ * @author Miguel Colmenares <me@miguelcolmenares.com>
+ * @license PolyForm-Noncommercial-1.0.0
  */
 
 declare module "@lhci/cli" {
@@ -15,7 +20,5 @@ declare module "@lhci/cli" {
     upload?: Record<string, unknown>;
   }
 
-  export function autorun(
-    options?: LHCIConfigCI
-  ): Promise<LHCIAutorunResult>;
+  export function autorun(options?: LHCIConfigCI): Promise<LHCIAutorunResult>;
 }

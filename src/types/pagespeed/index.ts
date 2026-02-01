@@ -1,9 +1,11 @@
 /**
- * PageSpeed Insights API Types
+ * @silverassist/performance-toolkit
  *
- * Types for Google PageSpeed Insights API v5 integration
+ * PageSpeed Insights API v5 type definitions.
  *
- * @packageDocumentation
+ * @module types/pagespeed
+ * @author Miguel Colmenares <me@miguelcolmenares.com>
+ * @license PolyForm-Noncommercial-1.0.0
  */
 
 // =============================================================================
@@ -18,7 +20,11 @@ export type Strategy = "mobile" | "desktop";
 /**
  * PageSpeed analysis category
  */
-export type Category = "performance" | "accessibility" | "best-practices" | "seo";
+export type Category =
+  | "performance"
+  | "accessibility"
+  | "best-practices"
+  | "seo";
 
 // =============================================================================
 // Request Types
@@ -151,7 +157,13 @@ export interface LighthouseAudit {
   /** Score from 0 to 1, or null if not applicable */
   score: number | null;
   /** Score display mode */
-  scoreDisplayMode: "numeric" | "binary" | "informative" | "notApplicable" | "manual" | "error";
+  scoreDisplayMode:
+    | "numeric"
+    | "binary"
+    | "informative"
+    | "notApplicable"
+    | "manual"
+    | "error";
   /** Display value (e.g., "2.5 s") */
   displayValue?: string;
   /** Numeric value */

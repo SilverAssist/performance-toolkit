@@ -88,8 +88,10 @@ function loadEnvFile() {
             let value = match[2].trim();
 
             // Remove surrounding quotes if present
-            if ((value.startsWith('"') && value.endsWith('"')) ||
-                (value.startsWith("'") && value.endsWith("'"))) {
+            if (
+              (value.startsWith('"') && value.endsWith('"')) ||
+              (value.startsWith("'") && value.endsWith("'"))
+            ) {
               value = value.slice(1, -1);
             }
 
@@ -125,6 +127,107 @@ const COLORS = {
   blue: "\x1b[34m",
   magenta: "\x1b[35m",
 };
+
+// ===========================================================================
+// Severity/Impact/Status Mappings (Single Source of Truth)
+// ===========================================================================
+
+/** Severity level color mapping */
+const SEVERITY_COLORS = {
+  critical: "red",
+  serious: "red",
+  moderate: "yellow",
+  minor: "green",
+};
+
+/** Severity level emoji mapping */
+const SEVERITY_EMOJI = {
+  critical: "🔴",
+  serious: "🟠",
+  moderate: "🟡",
+  minor: "🟢",
+};
+
+/** Impact level color mapping */
+const IMPACT_COLORS = {
+  critical: "red",
+  high: "yellow",
+  medium: "cyan",
+  low: "green",
+};
+
+/** Impact level emoji mapping */
+const IMPACT_EMOJI = {
+  critical: "🔴",
+  high: "🟠",
+  medium: "🟡",
+  low: "🟢",
+};
+
+/** Health status color mapping */
+const STATUS_COLORS = {
+  healthy: "green",
+  "needs-attention": "yellow",
+  critical: "red",
+};
+
+/** Health status emoji mapping */
+const STATUS_EMOJI = {
+  healthy: "✅",
+  "needs-attention": "⚠️",
+  critical: "❌",
+};
+
+/** Urgency level emoji mapping */
+const URGENCY_EMOJI = {
+  immediate: "🔴",
+  soon: "🟡",
+  "when-possible": "🟢",
+};
+
+// ===========================================================================
+// Helper Functions for Mappings
+// ===========================================================================
+
+/**
+ * Get color and emoji for a severity level
+ * @param {string} severity - Severity level (critical, serious, moderate, minor)
+ * @returns {{color: string, emoji: string}}
+ */
+function getSeverityStyle(severity) {
+  return {
+    color: SEVERITY_COLORS[severity] || "reset",
+    emoji: SEVERITY_EMOJI[severity] || "⚪",
+  };
+}
+
+/**
+ * Get color and emoji for an impact level
+ * @param {string} impact - Impact level (critical, high, medium, low)
+ * @returns {{color: string, emoji: string}}
+ */
+function getImpactStyle(impact) {
+  return {
+    color: IMPACT_COLORS[impact] || "reset",
+    emoji: IMPACT_EMOJI[impact] || "⚪",
+  };
+}
+
+/**
+ * Get color and emoji for a health status
+ * @param {string} status - Status (healthy, needs-attention, critical)
+ * @returns {{color: string, emoji: string}}
+ */
+function getStatusStyle(status) {
+  return {
+    color: STATUS_COLORS[status] || "reset",
+    emoji: STATUS_EMOJI[status] || "⚪",
+  };
+}
+
+// ===========================================================================
+// Console Output Helpers
+// ===========================================================================
 
 /**
  * Print colored message to console
@@ -165,6 +268,97 @@ function error(message) {
  */
 function info(message) {
   log(`ℹ️  ${message}`, "cyan");
+}
+
+/**
+ * Print section header with separators
+ * @param {string} title - Section title
+ * @param {string} emoji - Emoji prefix
+ * @param {boolean} isMain - Whether this is a main section (double line) or subsection
+ */
+function printSectionHeader(title, emoji = "", isMain = true) {
+  console.log("");
+  const separator = isMain
+    ? "═══════════════════════════════════════════════════════════════"
+    : "───────────────────────────────────────────────────────────────";
+  log(separator, "dim");
+  log(`${emoji}${emoji ? " " : ""}${title}`, isMain ? "bright" : "cyan");
+  if (isMain) {
+    log(separator, "dim");
+  }
+}
+
+/**
+ * Print section footer
+ */
+function printSectionFooter() {
+  console.log("");
+  log("═══════════════════════════════════════════════════════════════", "dim");
+}
+
+/**
+ * Print a labeled item with optional colored value
+ * @param {string} label - Item label
+ * @param {string} value - Item value
+ * @param {string} color - Color for value (optional)
+ */
+function printLabeledValue(label, value, color = null) {
+  const coloredValue = color
+    ? `${COLORS[color]}${value}${COLORS.reset}`
+    : value;
+  console.log(`   ${label}: ${coloredValue}`);
+}
+
+/**
+ * Print a list of items with truncated URLs and sizes
+ * @param {Array} items - Array of items to print
+ * @param {number} maxItems - Maximum items to show
+ * @param {number} urlLength - Max URL length
+ */
+function printItemsList(items, maxItems = 3, urlLength = 40) {
+  if (!items || items.length === 0) return;
+
+  const topItems = items.slice(0, maxItems);
+  topItems.forEach((item) => {
+    const label = item.url
+      ? truncateUrl(item.url, urlLength)
+      : item.label || "Unknown";
+    const size = item.wastedBytes
+      ? formatBytes(item.wastedBytes)
+      : item.timeMs
+        ? `${Math.round(item.timeMs)}ms`
+        : "";
+    console.log(
+      `      ${COLORS.dim}• ${label}${size ? ` (${size})` : ""}${COLORS.reset}`,
+    );
+  });
+  if (items.length > maxItems) {
+    console.log(
+      `      ${COLORS.dim}... and ${items.length - maxItems} more${COLORS.reset}`,
+    );
+  }
+}
+
+/**
+ * Print insight subsection header (magenta color)
+ * @param {string} title - Subsection title
+ */
+function printInsightSubsection(title) {
+  console.log("");
+  log(title, "magenta");
+  log("───────────────────────────────────────────────────────────────", "dim");
+}
+
+/**
+ * Print "... and X more" message if there are more items
+ * @param {number} total - Total items count
+ * @param {number} shown - Number of items shown
+ * @param {string} label - Item label (e.g., "scripts", "images")
+ */
+function printMoreItems(total, shown, label) {
+  if (total > shown) {
+    info(`   ... and ${total - shown} more ${label}`);
+  }
 }
 
 /**
@@ -236,62 +430,72 @@ function printSummary(result) {
   console.log("");
   log("═══════════════════════════════════════════════════════════════", "dim");
   log(`📊 Performance Report: ${result.url}`, "bright");
-  log(`   Strategy: ${result.strategy.toUpperCase()} | ${result.timestamp}`, "dim");
+  log(
+    `   Strategy: ${result.strategy.toUpperCase()} | ${result.timestamp}`,
+    "dim",
+  );
   log("═══════════════════════════════════════════════════════════════", "dim");
 
   // Category Scores
-  console.log("");
-  log("📈 Category Scores", "cyan");
-  log("───────────────────────────────────────────────────────────────", "dim");
-
+  printSectionHeader("Category Scores", "📈", false);
   const scores = result.scores;
-  if (scores.performance !== null) {
-    const color = getScoreColor(scores.performance);
-    console.log(`   Performance:    ${COLORS[color]}${scores.performance}${COLORS.reset}/100`);
-  }
-  if (scores.accessibility !== null) {
-    const color = getScoreColor(scores.accessibility);
-    console.log(`   Accessibility:  ${COLORS[color]}${scores.accessibility}${COLORS.reset}/100`);
-  }
-  if (scores.bestPractices !== null) {
-    const color = getScoreColor(scores.bestPractices);
-    console.log(`   Best Practices: ${COLORS[color]}${scores.bestPractices}${COLORS.reset}/100`);
-  }
-  if (scores.seo !== null) {
-    const color = getScoreColor(scores.seo);
-    console.log(`   SEO:            ${COLORS[color]}${scores.seo}${COLORS.reset}/100`);
-  }
+  printScore("Performance", scores.performance);
+  printScore("Accessibility", scores.accessibility);
+  printScore("Best Practices", scores.bestPractices);
+  printScore("SEO", scores.seo);
 
   // Core Web Vitals
-  console.log("");
-  log("⚡ Core Web Vitals", "cyan");
-  log("───────────────────────────────────────────────────────────────", "dim");
-
+  printSectionHeader("Core Web Vitals", "⚡", false);
   const metrics = result.metrics;
-  console.log(`   LCP (Largest Contentful Paint):  ${formatMetric(metrics.lcp)}`);
-  console.log(`   FCP (First Contentful Paint):    ${formatMetric(metrics.fcp)}`);
-  console.log(`   CLS (Cumulative Layout Shift):   ${formatMetric(metrics.cls)}`);
-  console.log(`   TBT (Total Blocking Time):       ${formatMetric(metrics.tbt)}`);
-  console.log(`   SI  (Speed Index):               ${formatMetric(metrics.si)}`);
-  console.log(`   TTI (Time to Interactive):       ${formatMetric(metrics.tti)}`);
+  console.log(
+    `   LCP (Largest Contentful Paint):  ${formatMetric(metrics.lcp)}`,
+  );
+  console.log(
+    `   FCP (First Contentful Paint):    ${formatMetric(metrics.fcp)}`,
+  );
+  console.log(
+    `   CLS (Cumulative Layout Shift):   ${formatMetric(metrics.cls)}`,
+  );
+  console.log(
+    `   TBT (Total Blocking Time):       ${formatMetric(metrics.tbt)}`,
+  );
+  console.log(
+    `   SI  (Speed Index):               ${formatMetric(metrics.si)}`,
+  );
+  console.log(
+    `   TTI (Time to Interactive):       ${formatMetric(metrics.tti)}`,
+  );
 
   // LCP Element
   if (result.lcpElement) {
-    console.log("");
-    log("🖼️  LCP Element", "cyan");
-    log("───────────────────────────────────────────────────────────────", "dim");
+    printSectionHeader("LCP Element", "🖼️", false);
     console.log(`   Tag:      ${result.lcpElement.tagName}`);
     console.log(`   Selector: ${result.lcpElement.selector || "N/A"}`);
     if (result.lcpElement.url) {
       console.log(`   URL:      ${truncateUrl(result.lcpElement.url)}`);
     }
     if (result.lcpElement.snippet) {
-      console.log(`   Snippet:  ${result.lcpElement.snippet.substring(0, 80)}...`);
+      console.log(
+        `   Snippet:  ${result.lcpElement.snippet.substring(0, 80)}...`,
+      );
     }
   }
 
-  console.log("");
-  log("═══════════════════════════════════════════════════════════════", "dim");
+  printSectionFooter();
+}
+
+/**
+ * Print a score with color formatting
+ * @param {string} label - Score label
+ * @param {number|null} score - Score value
+ */
+function printScore(label, score) {
+  if (score === null) return;
+  const color = getScoreColor(score);
+  const padding = " ".repeat(Math.max(0, 15 - label.length));
+  console.log(
+    `   ${label}:${padding}${COLORS[color]}${score}${COLORS.reset}/100`,
+  );
 }
 
 /**
@@ -301,14 +505,14 @@ function printSummary(result) {
 function printOpportunities(opportunities) {
   if (opportunities.length === 0) return;
 
-  console.log("");
-  log("💡 Opportunities for Improvement", "cyan");
-  log("───────────────────────────────────────────────────────────────", "dim");
+  printSectionHeader("Opportunities for Improvement", "💡", false);
 
   const topOpportunities = opportunities.slice(0, 5);
   topOpportunities.forEach((op, index) => {
     const savings = op.savingsMs ? `(~${Math.round(op.savingsMs)}ms)` : "";
-    console.log(`   ${index + 1}. ${op.title} ${COLORS.yellow}${savings}${COLORS.reset}`);
+    console.log(
+      `   ${index + 1}. ${op.title} ${COLORS.yellow}${savings}${COLORS.reset}`,
+    );
   });
 
   if (opportunities.length > 5) {
@@ -326,160 +530,188 @@ function printDetailedInsights(insights) {
     return;
   }
 
-  console.log("");
-  log("═══════════════════════════════════════════════════════════════", "dim");
-  log("🔍 DETAILED INSIGHTS (AI-Actionable Data)", "bright");
-  log("═══════════════════════════════════════════════════════════════", "dim");
+  printSectionHeader("DETAILED INSIGHTS (AI-Actionable Data)", "🔍");
 
   // LCP Breakdown
   if (insights.lcpBreakdown) {
-    console.log("");
-    log("⏱️  LCP Timing Breakdown", "magenta");
-    log("───────────────────────────────────────────────────────────────", "dim");
+    printInsightSubsection("⏱️  LCP Timing Breakdown");
     const b = insights.lcpBreakdown;
-    console.log(`   TTFB (Server Response):     ${COLORS.yellow}${b.ttfb}ms${COLORS.reset}`);
-    console.log(`   Resource Load Delay:        ${COLORS.yellow}${b.resourceLoadDelay}ms${COLORS.reset}`);
-    console.log(`   Resource Load Duration:     ${COLORS.yellow}${b.resourceLoadDuration}ms${COLORS.reset}`);
-    console.log(`   Element Render Delay:       ${COLORS.yellow}${b.elementRenderDelay}ms${COLORS.reset}`);
+    console.log(
+      `   TTFB (Server Response):     ${COLORS.yellow}${b.ttfb}ms${COLORS.reset}`,
+    );
+    console.log(
+      `   Resource Load Delay:        ${COLORS.yellow}${b.resourceLoadDelay}ms${COLORS.reset}`,
+    );
+    console.log(
+      `   Resource Load Duration:     ${COLORS.yellow}${b.resourceLoadDuration}ms${COLORS.reset}`,
+    );
+    console.log(
+      `   Element Render Delay:       ${COLORS.yellow}${b.elementRenderDelay}ms${COLORS.reset}`,
+    );
     console.log(`   ─────────────────────────────`);
-    console.log(`   Total LCP:                  ${COLORS.bright}${b.total}ms${COLORS.reset}`);
+    console.log(
+      `   Total LCP:                  ${COLORS.bright}${b.total}ms${COLORS.reset}`,
+    );
   }
 
   // Third-Party Impact
   if (insights.thirdParties?.length > 0) {
-    console.log("");
-    log("🌐 Third-Party Script Impact", "magenta");
-    log("───────────────────────────────────────────────────────────────", "dim");
-    
+    printInsightSubsection("🌐 Third-Party Script Impact");
+
     insights.thirdParties.slice(0, 10).forEach((tp) => {
-      const blockingColor = tp.blockingTime > 200 ? "red" : tp.blockingTime > 50 ? "yellow" : "green";
-      console.log(`   ${COLORS.bright}${tp.entity}${COLORS.reset} (${tp.category || "other"})`);
-      console.log(`      Blocking Time: ${COLORS[blockingColor]}${tp.blockingTime.toFixed(0)}ms${COLORS.reset}`);
+      const blockingColor =
+        tp.blockingTime > 200
+          ? "red"
+          : tp.blockingTime > 50
+            ? "yellow"
+            : "green";
+      console.log(
+        `   ${COLORS.bright}${tp.entity}${COLORS.reset} (${tp.category || "other"})`,
+      );
+      console.log(
+        `      Blocking Time: ${COLORS[blockingColor]}${tp.blockingTime.toFixed(0)}ms${COLORS.reset}`,
+      );
       console.log(`      Transfer Size: ${formatBytes(tp.transferSize)}`);
       console.log(`      Requests: ${tp.requestCount}`);
     });
-    
-    if (insights.thirdParties.length > 10) {
-      info(`   ... and ${insights.thirdParties.length - 10} more third-parties`);
-    }
+
+    printMoreItems(insights.thirdParties.length, 10, "third-parties");
   }
 
   // Unused JavaScript
   if (insights.unusedJavaScript?.length > 0) {
-    console.log("");
-    log("📦 Unused JavaScript", "magenta");
-    log("───────────────────────────────────────────────────────────────", "dim");
-    
+    printInsightSubsection("📦 Unused JavaScript");
+
     let totalWasted = 0;
     insights.unusedJavaScript.slice(0, 10).forEach((js) => {
       totalWasted += js.wastedBytes;
-      const partyTag = js.isFirstParty ? `${COLORS.cyan}[1st]${COLORS.reset}` : `${COLORS.dim}[3rd: ${js.entity || "unknown"}]${COLORS.reset}`;
+      const partyTag = js.isFirstParty
+        ? `${COLORS.cyan}[1st]${COLORS.reset}`
+        : `${COLORS.dim}[3rd: ${js.entity || "unknown"}]${COLORS.reset}`;
       console.log(`   ${partyTag} ${truncateUrl(js.url, 50)}`);
-      console.log(`      Wasted: ${COLORS.yellow}${formatBytes(js.wastedBytes)}${COLORS.reset} (${js.wastedPercent}% unused)`);
+      console.log(
+        `      Wasted: ${COLORS.yellow}${formatBytes(js.wastedBytes)}${COLORS.reset} (${js.wastedPercent}% unused)`,
+      );
     });
-    
+
     console.log(`   ─────────────────────────────`);
-    console.log(`   ${COLORS.bright}Total Wasted: ${formatBytes(totalWasted)}${COLORS.reset}`);
-    
-    if (insights.unusedJavaScript.length > 10) {
-      info(`   ... and ${insights.unusedJavaScript.length - 10} more scripts`);
-    }
+    console.log(
+      `   ${COLORS.bright}Total Wasted: ${formatBytes(totalWasted)}${COLORS.reset}`,
+    );
+
+    printMoreItems(insights.unusedJavaScript.length, 10, "scripts");
   }
 
   // Unused CSS
   if (insights.unusedCSS?.length > 0) {
-    console.log("");
-    log("🎨 Unused CSS", "magenta");
-    log("───────────────────────────────────────────────────────────────", "dim");
-    
+    printInsightSubsection("🎨 Unused CSS");
+
     let totalWasted = 0;
     insights.unusedCSS.slice(0, 5).forEach((css) => {
       totalWasted += css.wastedBytes;
-      const partyTag = css.isFirstParty ? `${COLORS.cyan}[1st]${COLORS.reset}` : `${COLORS.dim}[3rd]${COLORS.reset}`;
+      const partyTag = css.isFirstParty
+        ? `${COLORS.cyan}[1st]${COLORS.reset}`
+        : `${COLORS.dim}[3rd]${COLORS.reset}`;
       console.log(`   ${partyTag} ${truncateUrl(css.url, 50)}`);
-      console.log(`      Wasted: ${COLORS.yellow}${formatBytes(css.wastedBytes)}${COLORS.reset} (${css.wastedPercent}% unused)`);
+      console.log(
+        `      Wasted: ${COLORS.yellow}${formatBytes(css.wastedBytes)}${COLORS.reset} (${css.wastedPercent}% unused)`,
+      );
     });
-    
-    console.log(`   ${COLORS.bright}Total Wasted: ${formatBytes(totalWasted)}${COLORS.reset}`);
+
+    console.log(
+      `   ${COLORS.bright}Total Wasted: ${formatBytes(totalWasted)}${COLORS.reset}`,
+    );
   }
 
   // Cache Issues
   if (insights.cacheIssues?.length > 0) {
-    console.log("");
-    log("💾 Cache Policy Issues", "magenta");
-    log("───────────────────────────────────────────────────────────────", "dim");
-    
+    printInsightSubsection("💾 Cache Policy Issues");
+
     insights.cacheIssues.slice(0, 8).forEach((cache) => {
-      const entityTag = cache.entity ? `${COLORS.dim}[${cache.entity}]${COLORS.reset}` : "";
-      const ttlColor = cache.cacheTTL === 0 ? "red" : cache.cacheTTL < 86400000 ? "yellow" : "green";
+      const entityTag = cache.entity
+        ? `${COLORS.dim}[${cache.entity}]${COLORS.reset}`
+        : "";
+      const ttlColor =
+        cache.cacheTTL === 0
+          ? "red"
+          : cache.cacheTTL < 86400000
+            ? "yellow"
+            : "green";
       console.log(`   ${truncateUrl(cache.url, 50)} ${entityTag}`);
-      console.log(`      TTL: ${COLORS[ttlColor]}${cache.cacheTTLDisplay}${COLORS.reset} | Size: ${formatBytes(cache.transferSize)}`);
+      console.log(
+        `      TTL: ${COLORS[ttlColor]}${cache.cacheTTLDisplay}${COLORS.reset} | Size: ${formatBytes(cache.transferSize)}`,
+      );
     });
-    
-    if (insights.cacheIssues.length > 8) {
-      info(`   ... and ${insights.cacheIssues.length - 8} more resources`);
-    }
+
+    printMoreItems(insights.cacheIssues.length, 8, "resources");
   }
 
   // Image Issues
   if (insights.imageIssues?.length > 0) {
-    console.log("");
-    log("🖼️  Image Optimization Issues", "magenta");
-    log("───────────────────────────────────────────────────────────────", "dim");
-    
+    printInsightSubsection("🖼️  Image Optimization Issues");
+
     insights.imageIssues.slice(0, 5).forEach((img) => {
-      const typeColor = img.issueType === "offscreen" ? "cyan" : img.issueType === "format" ? "yellow" : "red";
-      console.log(`   ${COLORS[typeColor]}[${img.issueType}]${COLORS.reset} ${truncateUrl(img.url, 45)}`);
-      console.log(`      Potential Savings: ${COLORS.yellow}${formatBytes(img.wastedBytes)}${COLORS.reset}`);
+      const typeColor =
+        img.issueType === "offscreen"
+          ? "cyan"
+          : img.issueType === "format"
+            ? "yellow"
+            : "red";
+      console.log(
+        `   ${COLORS[typeColor]}[${img.issueType}]${COLORS.reset} ${truncateUrl(img.url, 45)}`,
+      );
+      console.log(
+        `      Potential Savings: ${COLORS.yellow}${formatBytes(img.wastedBytes)}${COLORS.reset}`,
+      );
       console.log(`      Action: ${img.recommendation}`);
     });
-    
-    if (insights.imageIssues.length > 5) {
-      info(`   ... and ${insights.imageIssues.length - 5} more images`);
-    }
+
+    printMoreItems(insights.imageIssues.length, 5, "images");
   }
 
   // Legacy JavaScript
   if (insights.legacyJavaScript?.length > 0) {
-    console.log("");
-    log("📜 Legacy JavaScript (Polyfills)", "magenta");
-    log("───────────────────────────────────────────────────────────────", "dim");
-    
+    printInsightSubsection("📜 Legacy JavaScript (Polyfills)");
+
     insights.legacyJavaScript.slice(0, 5).forEach((legacy) => {
       console.log(`   ${truncateUrl(legacy.url, 50)}`);
-      console.log(`      Wasted: ${COLORS.yellow}${formatBytes(legacy.wastedBytes)}${COLORS.reset}`);
+      console.log(
+        `      Wasted: ${COLORS.yellow}${formatBytes(legacy.wastedBytes)}${COLORS.reset}`,
+      );
       if (legacy.polyfills.length > 0) {
-        console.log(`      Polyfills: ${legacy.polyfills.slice(0, 3).join(", ")}${legacy.polyfills.length > 3 ? "..." : ""}`);
+        console.log(
+          `      Polyfills: ${legacy.polyfills.slice(0, 3).join(", ")}${legacy.polyfills.length > 3 ? "..." : ""}`,
+        );
       }
     });
   }
 
   // Render-Blocking Resources
   if (insights.renderBlocking?.length > 0) {
-    console.log("");
-    log("🚧 Render-Blocking Resources", "magenta");
-    log("───────────────────────────────────────────────────────────────", "dim");
-    
+    printInsightSubsection("🚧 Render-Blocking Resources");
+
+    const RESOURCE_TYPE_EMOJI = { script: "📜", stylesheet: "🎨" };
     insights.renderBlocking.slice(0, 5).forEach((rb) => {
-      const typeEmoji = rb.resourceType === "script" ? "📜" : rb.resourceType === "stylesheet" ? "🎨" : "📄";
+      const typeEmoji = RESOURCE_TYPE_EMOJI[rb.resourceType] || "📄";
       console.log(`   ${typeEmoji} ${truncateUrl(rb.url, 50)}`);
-      console.log(`      Blocking Time: ${COLORS.red}${rb.wastedMs.toFixed(0)}ms${COLORS.reset} | Size: ${formatBytes(rb.transferSize)}`);
+      console.log(
+        `      Blocking Time: ${COLORS.red}${rb.wastedMs.toFixed(0)}ms${COLORS.reset} | Size: ${formatBytes(rb.transferSize)}`,
+      );
     });
-    
-    if (insights.renderBlocking.length > 5) {
-      info(`   ... and ${insights.renderBlocking.length - 5} more resources`);
-    }
+
+    printMoreItems(insights.renderBlocking.length, 5, "resources");
   }
 
   // Long Tasks
   if (insights.longTasks?.length > 0) {
-    console.log("");
-    log("⏳ Long Main-Thread Tasks", "magenta");
-    log("───────────────────────────────────────────────────────────────", "dim");
-    
+    printInsightSubsection("⏳ Long Main-Thread Tasks");
+
     insights.longTasks.slice(0, 5).forEach((task) => {
-      const durationColor = task.duration > 200 ? "red" : task.duration > 100 ? "yellow" : "green";
-      console.log(`   Duration: ${COLORS[durationColor]}${task.duration.toFixed(0)}ms${COLORS.reset} at ${task.startTime.toFixed(0)}ms`);
+      const durationColor =
+        task.duration > 200 ? "red" : task.duration > 100 ? "yellow" : "green";
+      console.log(
+        `   Duration: ${COLORS[durationColor]}${task.duration.toFixed(0)}ms${COLORS.reset} at ${task.startTime.toFixed(0)}ms`,
+      );
       if (task.url) {
         console.log(`      Source: ${truncateUrl(task.url, 50)}`);
       }
@@ -488,13 +720,14 @@ function printDetailedInsights(insights) {
 
   // Total Savings Summary
   if (insights.totalSavings) {
-    console.log("");
-    log("═══════════════════════════════════════════════════════════════", "dim");
-    log("📊 TOTAL POTENTIAL SAVINGS", "bright");
-    log("───────────────────────────────────────────────────────────────", "dim");
-    console.log(`   Time Savings:  ${COLORS.green}~${insights.totalSavings.timeMs}ms${COLORS.reset}`);
-    console.log(`   Size Savings:  ${COLORS.green}${formatBytes(insights.totalSavings.sizeBytes)}${COLORS.reset}`);
-    log("═══════════════════════════════════════════════════════════════", "dim");
+    printSectionHeader("TOTAL POTENTIAL SAVINGS", "📊");
+    console.log(
+      `   Time Savings:  ${COLORS.green}~${insights.totalSavings.timeMs}ms${COLORS.reset}`,
+    );
+    console.log(
+      `   Size Savings:  ${COLORS.green}${formatBytes(insights.totalSavings.sizeBytes)}${COLORS.reset}`,
+    );
+    printSectionFooter();
   }
 }
 
@@ -504,55 +737,26 @@ function printDetailedInsights(insights) {
  */
 function printDiagnosticsTable(report) {
   const { diagnosticsTable } = report;
-  
+
   if (!diagnosticsTable || diagnosticsTable.length === 0) {
     info("No diagnostics available");
     return;
   }
 
-  console.log("");
-  log("═══════════════════════════════════════════════════════════════", "dim");
-  log("📋 DIAGNOSTICS TABLE", "bright");
-  log("═══════════════════════════════════════════════════════════════", "dim");
+  printSectionHeader("DIAGNOSTICS TABLE", "📋");
 
   diagnosticsTable.forEach((diag) => {
-    const severityColors = {
-      critical: "red",
-      serious: "red",
-      moderate: "yellow",
-      minor: "green",
-    };
-    const severityEmoji = {
-      critical: "🔴",
-      serious: "🟠",
-      moderate: "🟡",
-      minor: "🟢",
-    };
-    
-    const color = severityColors[diag.severity] || "reset";
-    const emoji = severityEmoji[diag.severity] || "⚪";
-    
+    const { color, emoji } = getSeverityStyle(diag.severity);
+
     console.log("");
     console.log(`   ${emoji} ${COLORS.bright}${diag.title}${COLORS.reset}`);
     console.log(`      ${COLORS[color]}${diag.displayValue}${COLORS.reset}`);
-    
+
     // Show top items if available
-    if (diag.items && diag.items.length > 0) {
-      const topItems = diag.items.slice(0, 3);
-      topItems.forEach((item) => {
-        const label = item.url ? truncateUrl(item.url, 40) : item.label || "Unknown";
-        const size = item.wastedBytes ? formatBytes(item.wastedBytes) : 
-                     item.timeMs ? `${Math.round(item.timeMs)}ms` : "";
-        console.log(`      ${COLORS.dim}• ${label}${size ? ` (${size})` : ""}${COLORS.reset}`);
-      });
-      if (diag.items.length > 3) {
-        console.log(`      ${COLORS.dim}... and ${diag.items.length - 3} more${COLORS.reset}`);
-      }
-    }
+    printItemsList(diag.items, 3);
   });
 
-  console.log("");
-  log("═══════════════════════════════════════════════════════════════", "dim");
+  printSectionFooter();
 }
 
 /**
@@ -561,53 +765,48 @@ function printDiagnosticsTable(report) {
  */
 function printKeyOpportunities(report) {
   const { keyOpportunities, summary } = report;
-  
+
   if (!keyOpportunities || keyOpportunities.length === 0) {
     info("No key opportunities identified");
     return;
   }
 
-  console.log("");
-  log("═══════════════════════════════════════════════════════════════", "dim");
-  log("🎯 KEY OPPORTUNITIES", "bright");
-  log("═══════════════════════════════════════════════════════════════", "dim");
+  printSectionHeader("KEY OPPORTUNITIES", "🎯");
 
   keyOpportunities.slice(0, 5).forEach((opp, index) => {
-    const impactColors = {
-      critical: "red",
-      high: "yellow",
-      medium: "cyan",
-      low: "green",
-    };
-    const impactEmoji = {
-      critical: "🔴",
-      high: "🟠",
-      medium: "🟡",
-      low: "🟢",
-    };
-    
-    const color = impactColors[opp.impact.level] || "reset";
-    const emoji = impactEmoji[opp.impact.level] || "⚪";
-    
+    const { color, emoji } = getImpactStyle(opp.impact.level);
+
     console.log("");
-    console.log(`   ${index + 1}. ${emoji} ${COLORS.bright}${opp.title}${COLORS.reset}`);
-    console.log(`      Impact: ${COLORS[color]}${opp.impact.level.toUpperCase()}${COLORS.reset}`);
-    
+    console.log(
+      `   ${index + 1}. ${emoji} ${COLORS.bright}${opp.title}${COLORS.reset}`,
+    );
+    console.log(
+      `      Impact: ${COLORS[color]}${opp.impact.level.toUpperCase()}${COLORS.reset}`,
+    );
+
     if (opp.impact.lcpImprovementMs) {
-      console.log(`      Est. LCP improvement: ${COLORS.green}-${opp.impact.lcpImprovementMs}ms${COLORS.reset}`);
+      console.log(
+        `      Est. LCP improvement: ${COLORS.green}-${opp.impact.lcpImprovementMs}ms${COLORS.reset}`,
+      );
     }
     if (opp.impact.sizeSavings) {
-      console.log(`      Est. size savings: ${COLORS.green}${formatBytes(opp.impact.sizeSavings)}${COLORS.reset}`);
+      console.log(
+        `      Est. size savings: ${COLORS.green}${formatBytes(opp.impact.sizeSavings)}${COLORS.reset}`,
+      );
     }
-    
+
     // Show first step
     if (opp.steps && opp.steps.length > 0) {
-      console.log(`      ${COLORS.dim}Next step: ${opp.steps[0].title}${COLORS.reset}`);
+      console.log(
+        `      ${COLORS.dim}Next step: ${opp.steps[0].title}${COLORS.reset}`,
+      );
     }
-    
+
     // Show framework-specific note if available
     if (opp.frameworkNotes && opp.frameworkNotes.length > 0) {
-      console.log(`      ${COLORS.cyan}💡 ${opp.frameworkNotes[0].framework}: ${opp.frameworkNotes[0].note.substring(0, 60)}...${COLORS.reset}`);
+      console.log(
+        `      ${COLORS.cyan}💡 ${opp.frameworkNotes[0].framework}: ${opp.frameworkNotes[0].note.substring(0, 60)}...${COLORS.reset}`,
+      );
     }
   });
 
@@ -617,37 +816,30 @@ function printKeyOpportunities(report) {
   }
 
   // Summary
-  console.log("");
-  log("───────────────────────────────────────────────────────────────", "dim");
-  log("📊 Summary", "cyan");
-  
-  const statusColors = {
-    healthy: "green",
-    "needs-attention": "yellow",
-    critical: "red",
-  };
-  const statusEmoji = {
-    healthy: "✅",
-    "needs-attention": "⚠️",
-    critical: "❌",
-  };
-  
-  const statusColor = statusColors[summary.healthStatus] || "reset";
-  const statusEm = statusEmoji[summary.healthStatus] || "⚪";
-  
-  console.log(`   Status: ${statusEm} ${COLORS[statusColor]}${summary.healthStatus.toUpperCase()}${COLORS.reset}`);
+  printSectionHeader("Summary", "📊", false);
+
+  const { color: statusColor, emoji: statusEmoji } = getStatusStyle(
+    summary.healthStatus,
+  );
+
+  console.log(
+    `   Status: ${statusEmoji} ${COLORS[statusColor]}${summary.healthStatus.toUpperCase()}${COLORS.reset}`,
+  );
   console.log(`   Quick wins available: ${summary.quickWinsCount}`);
-  console.log(`   Potential time savings: ${COLORS.green}~${summary.potentialSavings.timeMs}ms${COLORS.reset}`);
-  console.log(`   Potential size savings: ${COLORS.green}${formatBytes(summary.potentialSavings.sizeBytes)}${COLORS.reset}`);
-  
+  console.log(
+    `   Potential time savings: ${COLORS.green}~${summary.potentialSavings.timeMs}ms${COLORS.reset}`,
+  );
+  console.log(
+    `   Potential size savings: ${COLORS.green}${formatBytes(summary.potentialSavings.sizeBytes)}${COLORS.reset}`,
+  );
+
   console.log("");
   log("   Top Priorities:", "bright");
   summary.topPriorities.forEach((p, i) => {
     console.log(`      ${i + 1}. ${p}`);
   });
 
-  console.log("");
-  log("═══════════════════════════════════════════════════════════════", "dim");
+  printSectionFooter();
 }
 
 /**
@@ -656,25 +848,18 @@ function printKeyOpportunities(report) {
  */
 function printNextSteps(report) {
   const { nextSteps } = report;
-  
+
   if (!nextSteps || nextSteps.length === 0) return;
 
-  console.log("");
-  log("📝 RECOMMENDED NEXT STEPS", "cyan");
-  log("───────────────────────────────────────────────────────────────", "dim");
-  
+  printSectionHeader("RECOMMENDED NEXT STEPS", "📝", false);
+
   nextSteps.forEach((step, index) => {
-    const urgencyEmoji = {
-      immediate: "🔴",
-      soon: "🟡",
-      "when-possible": "🟢",
-    };
-    const emoji = urgencyEmoji[step.urgency] || "⚪";
-    
+    const emoji = URGENCY_EMOJI[step.urgency] || "⚪";
+
     console.log(`   ${index + 1}. ${emoji} ${step.title}`);
     console.log(`      ${COLORS.dim}${step.description}${COLORS.reset}`);
   });
-  
+
   console.log("");
 }
 
@@ -685,46 +870,49 @@ function printNextSteps(report) {
 function printEnhancedLCP(enhancedLCP) {
   if (!enhancedLCP) return;
 
-  console.log("");
-  log("═══════════════════════════════════════════════════════════════", "dim");
-  log("🖼️  LCP ELEMENT DETECTION", "bright");
-  log("═══════════════════════════════════════════════════════════════", "dim");
+  printSectionHeader("LCP ELEMENT DETECTION", "🖼️", true);
 
-  console.log("");
-  console.log(`   Type:      ${COLORS.cyan}${enhancedLCP.type}${COLORS.reset}`);
+  printLabeledValue("Type", enhancedLCP.type, "cyan");
   console.log(`   Tag:       ${enhancedLCP.tagName}`);
   console.log(`   Selector:  ${enhancedLCP.selector || "N/A"}`);
-  
+
   if (enhancedLCP.url) {
     console.log(`   URL:       ${truncateUrl(enhancedLCP.url, 50)}`);
   }
-  
+
   console.log(`   Loading:   ${enhancedLCP.loadingMechanism || "unknown"}`);
-  
+
   // Timing breakdown
   if (enhancedLCP.timing) {
-    console.log("");
-    log("   Timing Breakdown:", "magenta");
-    console.log(`      Request Start:  ${COLORS.yellow}${enhancedLCP.timing.requestStart || 0}ms${COLORS.reset}`);
-    console.log(`      Load End:       ${COLORS.yellow}${enhancedLCP.timing.loadEnd || 0}ms${COLORS.reset}`);
-    console.log(`      Render Time:    ${COLORS.yellow}${enhancedLCP.timing.renderTime || 0}ms${COLORS.reset}`);
+    printInsightSubsection("Timing Breakdown");
+    console.log(
+      `      Request Start:  ${COLORS.yellow}${enhancedLCP.timing.requestStart || 0}ms${COLORS.reset}`,
+    );
+    console.log(
+      `      Load End:       ${COLORS.yellow}${enhancedLCP.timing.loadEnd || 0}ms${COLORS.reset}`,
+    );
+    console.log(
+      `      Render Time:    ${COLORS.yellow}${enhancedLCP.timing.renderTime || 0}ms${COLORS.reset}`,
+    );
   }
 
   // Recommendations
   if (enhancedLCP.recommendations && enhancedLCP.recommendations.length > 0) {
-    console.log("");
-    log("   Recommendations:", "magenta");
+    printInsightSubsection("Recommendations");
     enhancedLCP.recommendations.slice(0, 3).forEach((rec) => {
-      const impactColor = rec.impact === "high" ? "red" : rec.impact === "medium" ? "yellow" : "green";
-      console.log(`      ${COLORS[impactColor]}[${rec.impact}]${COLORS.reset} ${rec.title}`);
+      const { color } = getImpactStyle(rec.impact);
+      console.log(
+        `      ${COLORS[color]}[${rec.impact}]${COLORS.reset} ${rec.title}`,
+      );
       if (rec.codeHints && rec.codeHints.length > 0) {
-        console.log(`         ${COLORS.dim}Hint: ${rec.codeHints[0]}${COLORS.reset}`);
+        console.log(
+          `         ${COLORS.dim}Hint: ${rec.codeHints[0]}${COLORS.reset}`,
+        );
       }
     });
   }
 
-  console.log("");
-  log("═══════════════════════════════════════════════════════════════", "dim");
+  printSectionFooter();
 }
 
 /**
@@ -737,19 +925,17 @@ function printProjectContext(context) {
     return;
   }
 
-  console.log("");
-  log("═══════════════════════════════════════════════════════════════", "dim");
-  log("🔍 PROJECT CONTEXT", "bright");
-  log("═══════════════════════════════════════════════════════════════", "dim");
+  printSectionHeader("PROJECT CONTEXT", "🔍", true);
 
   if (context.name) {
-    console.log(`   Project:     ${COLORS.cyan}${context.name}${COLORS.reset}`);
+    printLabeledValue("Project", context.name, "cyan");
   }
-  
+
   if (context.framework) {
-    console.log("");
-    log("   Framework:", "magenta");
-    console.log(`      Name:        ${COLORS.bright}${context.framework.name}${COLORS.reset}`);
+    printInsightSubsection("Framework");
+    console.log(
+      `      Name:        ${COLORS.bright}${context.framework.name}${COLORS.reset}`,
+    );
     console.log(`      Version:     ${context.framework.version}`);
     if (context.framework.routerType) {
       console.log(`      Router:      ${context.framework.routerType}`);
@@ -758,33 +944,36 @@ function printProjectContext(context) {
       console.log(`      Rendering:   ${context.framework.renderingMode}`);
     }
     if (context.framework.features && context.framework.features.length > 0) {
-      console.log(`      Features:    ${context.framework.features.join(", ")}`);
+      console.log(
+        `      Features:    ${context.framework.features.join(", ")}`,
+      );
     }
   }
 
   if (context.cssSolution) {
     console.log(`   CSS:         ${context.cssSolution}`);
   }
-  
+
   if (context.uiLibrary) {
     console.log(`   UI Library:  ${context.uiLibrary}`);
   }
-  
+
   console.log(`   TypeScript:  ${context.isTypeScript ? "Yes" : "No"}`);
-  
+
   if (context.buildTool) {
     console.log(`   Build Tool:  ${context.buildTool}`);
   }
 
   if (context.analytics && context.analytics.length > 0) {
-    console.log("");
-    log("   Analytics:", "magenta");
+    printInsightSubsection("Analytics");
     context.analytics.forEach((a) => console.log(`      • ${a}`));
   }
 
-  if (context.thirdPartyIntegrations && context.thirdPartyIntegrations.length > 0) {
-    console.log("");
-    log("   Integrations:", "magenta");
+  if (
+    context.thirdPartyIntegrations &&
+    context.thirdPartyIntegrations.length > 0
+  ) {
+    printInsightSubsection("Integrations");
     context.thirdPartyIntegrations.forEach((i) => console.log(`      • ${i}`));
   }
 
@@ -793,8 +982,7 @@ function printProjectContext(context) {
   console.log(`      Production: ${context.dependencies.production.length}`);
   console.log(`      Development: ${context.dependencies.development.length}`);
 
-  console.log("");
-  log("═══════════════════════════════════════════════════════════════", "dim");
+  printSectionFooter();
 }
 
 /**
@@ -806,7 +994,10 @@ function printProjectContext(context) {
 function checkThresholds(result, thresholds) {
   const violations = [];
 
-  if (thresholds.performance && result.scores.performance < thresholds.performance) {
+  if (
+    thresholds.performance &&
+    result.scores.performance < thresholds.performance
+  ) {
     violations.push({
       metric: "performance",
       actual: result.scores.performance,
@@ -973,18 +1164,30 @@ function showHelp() {
   console.log("Usage: perf-check <url> [options]\n");
 
   log("Commands:", "cyan");
-  console.log("  <url>              Analyze a URL and display Core Web Vitals\n");
+  console.log(
+    "  <url>              Analyze a URL and display Core Web Vitals\n",
+  );
 
   log("Options:", "cyan");
   console.log("  --mobile, -m       Use mobile strategy (default)");
   console.log("  --desktop, -d      Use desktop strategy");
-  console.log("  --verbose, -v      Show detailed output including opportunities");
-  console.log("  --insights, -i     Show all detailed insights (for AI agents)");
+  console.log(
+    "  --verbose, -v      Show detailed output including opportunities",
+  );
+  console.log(
+    "  --insights, -i     Show all detailed insights (for AI agents)",
+  );
   console.log("  --diagnostics      Show diagnostics table (PageSpeed format)");
-  console.log("  --actionable, -a   Generate actionable report with key opportunities");
+  console.log(
+    "  --actionable, -a   Generate actionable report with key opportunities",
+  );
   console.log("  --detect-context   Detect project technology stack");
-  console.log("  --json, -j         Output structured JSON (for programmatic use)");
-  console.log("  --ci               CI mode (exit code 1 on threshold violations)");
+  console.log(
+    "  --json, -j         Output structured JSON (for programmatic use)",
+  );
+  console.log(
+    "  --ci               CI mode (exit code 1 on threshold violations)",
+  );
   console.log("  --config, -c       Path to configuration file");
   console.log("  --output, -o       Output results to JSON file");
   console.log("  --baseline, -b     Compare against baseline file");
@@ -997,13 +1200,21 @@ function showHelp() {
   console.log("  perf-check https://www.example.com --actionable");
   console.log("  perf-check https://www.example.com --diagnostics");
   console.log("  perf-check https://www.example.com --json > report.json");
-  console.log("  perf-check https://www.example.com --ci --output results.json\n");
+  console.log(
+    "  perf-check https://www.example.com --ci --output results.json\n",
+  );
 
   log("Environment Variables:", "cyan");
-  console.log("  PAGESPEED_API_KEY  Google PageSpeed API key (recommended for higher rate limits)");
+  console.log(
+    "  PAGESPEED_API_KEY  Google PageSpeed API key (recommended for higher rate limits)",
+  );
   console.log("");
-  console.log("  The CLI automatically loads .env.local or .env files from the current directory.");
-  console.log("  In CI/CD pipelines, set PAGESPEED_API_KEY as a secret/environment variable.\n");
+  console.log(
+    "  The CLI automatically loads .env.local or .env files from the current directory.",
+  );
+  console.log(
+    "  In CI/CD pipelines, set PAGESPEED_API_KEY as a secret/environment variable.\n",
+  );
 
   log("CI/CD Integration:", "cyan");
   console.log("  # GitHub Actions");
@@ -1014,7 +1225,9 @@ function showHelp() {
   console.log("  export PAGESPEED_API_KEY=$PAGESPEED_API_KEY\n");
 
   log("AI Agent Usage:", "cyan");
-  console.log("  Use --actionable for framework-aware recommendations that consider");
+  console.log(
+    "  Use --actionable for framework-aware recommendations that consider",
+  );
   console.log("  your project's technology stack (Next.js, React, Vue, etc.).");
   console.log("  Use --diagnostics for a PageSpeed-style diagnostics table.");
   console.log("  Use --json for machine-readable output.\n");
@@ -1039,7 +1252,7 @@ async function main() {
 
   // Load .env.local or .env file if exists (for local development)
   const loadedEnvFile = loadEnvFile();
-  
+
   const apiKey = process.env.PAGESPEED_API_KEY;
   const runningInCI = isCI();
 
@@ -1050,8 +1263,12 @@ async function main() {
     } else if (runningInCI && apiKey) {
       info("Using API key from CI/CD environment");
     } else if (!apiKey) {
-      warn("PAGESPEED_API_KEY not found. Running in free tier mode (2 requests/min limit).");
-      warn("Set PAGESPEED_API_KEY in .env.local or as environment variable for higher limits.");
+      warn(
+        "PAGESPEED_API_KEY not found. Running in free tier mode (2 requests/min limit).",
+      );
+      warn(
+        "Set PAGESPEED_API_KEY in .env.local or as environment variable for higher limits.",
+      );
     }
   }
 
@@ -1073,7 +1290,7 @@ async function main() {
     if (options.json) {
       let projectContext = null;
       let actionableReport = null;
-      
+
       // Include project context if requested
       if (options.detectContext || options.actionable) {
         try {
@@ -1083,7 +1300,7 @@ async function main() {
           // Silently ignore context detection errors in JSON mode
         }
       }
-      
+
       // Include actionable report if requested
       if (options.actionable || options.diagnostics) {
         try {
@@ -1093,7 +1310,7 @@ async function main() {
           // Silently ignore report generation errors in JSON mode
         }
       }
-      
+
       const outputData = {
         url: result.url,
         strategy: result.strategy,
@@ -1109,7 +1326,7 @@ async function main() {
         },
         lcpElement: result.lcpElement,
         insights: result.insights,
-        opportunities: result.opportunities.map(op => ({
+        opportunities: result.opportunities.map((op) => ({
           id: op.id,
           title: op.title,
           savingsMs: op.savingsMs,
@@ -1150,7 +1367,7 @@ async function main() {
       try {
         const { detectProjectContext } = await import("../dist/index.js");
         projectContext = await detectProjectContext(process.cwd());
-        
+
         if (options.detectContext && !options.actionable) {
           printProjectContext(projectContext);
         }
@@ -1166,29 +1383,38 @@ async function main() {
       try {
         const { generateActionableReport } = await import("../dist/index.js");
         actionableReport = generateActionableReport(result, projectContext);
-        
+
         // Print enhanced LCP element info
         if (actionableReport.enhancedLCP) {
           printEnhancedLCP(actionableReport.enhancedLCP);
         }
-        
+
         // Print diagnostics table
-        if (actionableReport.diagnostics && actionableReport.diagnostics.length > 0) {
+        if (
+          actionableReport.diagnostics &&
+          actionableReport.diagnostics.length > 0
+        ) {
           printDiagnosticsTable(actionableReport.diagnostics);
         }
-        
+
         // Print project context
         if (projectContext) {
           printProjectContext(projectContext);
         }
-        
+
         // Print key opportunities
-        if (actionableReport.keyOpportunities && actionableReport.keyOpportunities.length > 0) {
+        if (
+          actionableReport.keyOpportunities &&
+          actionableReport.keyOpportunities.length > 0
+        ) {
           printKeyOpportunities(actionableReport.keyOpportunities);
         }
-        
+
         // Print next steps
-        if (actionableReport.nextSteps && actionableReport.nextSteps.length > 0) {
+        if (
+          actionableReport.nextSteps &&
+          actionableReport.nextSteps.length > 0
+        ) {
           printNextSteps(actionableReport.nextSteps);
         }
       } catch (reportErr) {
@@ -1203,7 +1429,7 @@ async function main() {
       try {
         const { generateActionableReport } = await import("../dist/index.js");
         const partialReport = generateActionableReport(result, null);
-        
+
         if (partialReport.diagnostics && partialReport.diagnostics.length > 0) {
           printDiagnosticsTable(partialReport.diagnostics);
         }

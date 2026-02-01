@@ -1,9 +1,11 @@
 /**
- * Project Context Types
+ * @silverassist/performance-toolkit
  *
- * Types for project detection and framework identification
+ * Project context and framework detection type definitions.
  *
- * @packageDocumentation
+ * @module types/context
+ * @author Miguel Colmenares <me@miguelcolmenares.com>
+ * @license PolyForm-Noncommercial-1.0.0
  */
 
 // =============================================================================
@@ -15,7 +17,17 @@
  */
 export interface FrameworkInfo {
   /** Framework name */
-  name: "next" | "react" | "vue" | "nuxt" | "angular" | "svelte" | "astro" | "remix" | "gatsby" | "unknown";
+  name:
+    | "next"
+    | "react"
+    | "vue"
+    | "nuxt"
+    | "angular"
+    | "svelte"
+    | "astro"
+    | "remix"
+    | "gatsby"
+    | "unknown";
   /** Framework version */
   version: string;
   /** Router type (for frameworks with multiple options) */
@@ -41,7 +53,14 @@ export interface ProjectContext {
   /** UI library detected */
   uiLibrary?: string;
   /** CSS solution detected */
-  cssSolution?: "tailwind" | "css-modules" | "styled-components" | "emotion" | "sass" | "vanilla" | null;
+  cssSolution?:
+    | "tailwind"
+    | "css-modules"
+    | "styled-components"
+    | "emotion"
+    | "sass"
+    | "vanilla"
+    | null;
   /** TypeScript enabled */
   isTypeScript: boolean;
   /** Image optimization library */
