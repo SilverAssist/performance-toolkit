@@ -6,75 +6,88 @@
  * @packageDocumentation
  */
 
-import type { CoreWebVitals, CategoryScores } from "../metrics";
-import type { EnhancedLCPElement, DiagnosticItem, LCPBreakdown } from "../analysis";
+import type { CoreWebVitals } from "../metrics";
+import type { EnhancedLCPElement, DiagnosticItem, PerformanceResult } from "../analysis";
 import type { ProjectContext, FrameworkSpecificNote } from "../context";
-import type { PerformanceThresholds } from "../config";
 
 // =============================================================================
 // Report Structure Types
 // =============================================================================
 
 /**
- * Key opportunity for improvement (high-level summary)
+ * Key opportunity for performance improvement
  */
 export interface KeyOpportunity {
-  /** Opportunity identifier */
+  /** Unique identifier */
   id: string;
-  /** Short title */
+  /** Priority ranking (1 = highest priority) */
+  priority: number;
+  /** Opportunity title */
   title: string;
-  /** Impact level */
-  impact: "high" | "medium" | "low";
-  /** Estimated time savings in ms */
-  estimatedSavingsMs?: number;
-  /** Estimated size savings in bytes */
-  estimatedSavingsBytes?: number;
-  /** Description of the opportunity */
+  /** Detailed description */
   description: string;
-  /** Affected metrics */
-  affectsMetrics: Array<keyof CoreWebVitals>;
-  /** Quick win (easy to implement) */
-  isQuickWin: boolean;
+  /** Estimated performance impact */
+  impact: {
+    /** Impact level */
+    level: "critical" | "high" | "medium" | "low";
+    /** Estimated LCP improvement in ms */
+    lcpImprovementMs?: number;
+    /** Estimated performance score improvement */
+    scoreImprovement?: number;
+    /** Size savings in bytes */
+    sizeSavings?: number;
+  };
+  /** Implementation steps */
+  steps: ActionStep[];
+  /** Related diagnostics/audits */
+  relatedAudits: string[];
+  /** Framework-specific implementation notes */
+  frameworkNotes?: FrameworkSpecificNote[];
+  /** Resources/documentation links */
+  resources?: { title: string; url: string }[];
 }
 
 /**
- * Concrete action step for implementation
+ * Action step for implementing an opportunity
  */
 export interface ActionStep {
   /** Step number */
   order: number;
-  /** Action description */
-  action: string;
-  /** Code snippet if applicable */
-  codeSnippet?: string;
-  /** Relevant file path */
-  filePath?: string;
-  /** Effort estimate */
-  effort: "minimal" | "moderate" | "significant";
-  /** Tool/command to use */
-  tool?: string;
-}
-
-/**
- * Next step recommendation (prioritized)
- */
-export interface NextStep {
-  /** Priority rank (1 = highest) */
-  priority: number;
-  /** Which opportunity this relates to */
-  opportunityId: string;
   /** Step title */
   title: string;
   /** Detailed instructions */
   instructions: string;
-  /** Concrete action steps */
-  actionSteps: ActionStep[];
-  /** Expected outcome */
-  expectedOutcome: string;
-  /** Metric improvements expected */
-  expectedImprovements: Partial<Record<keyof CoreWebVitals, string>>;
-  /** Framework-specific notes */
-  frameworkNotes?: FrameworkSpecificNote[];
+  /** Code example if applicable */
+  codeExample?: {
+    /** Programming language */
+    language: string;
+    /** Code snippet */
+    code: string;
+    /** File path hint */
+    filePath?: string;
+  };
+  /** Estimated time to implement */
+  estimatedTime?: string;
+}
+
+/**
+ * Next step recommendation after analysis
+ */
+export interface NextStep {
+  /** Step identifier */
+  id: string;
+  /** Step title */
+  title: string;
+  /** Description */
+  description: string;
+  /** Type of action */
+  type: "code-change" | "config-change" | "investigation" | "monitoring" | "testing";
+  /** Urgency level */
+  urgency: "immediate" | "soon" | "when-possible";
+  /** Files likely to be modified */
+  affectedFiles?: string[];
+  /** Related opportunity IDs */
+  relatedOpportunities?: string[];
 }
 
 // =============================================================================
@@ -82,82 +95,35 @@ export interface NextStep {
 // =============================================================================
 
 /**
- * Complete actionable report for AI assistants and developers
+ * Complete actionable performance report
  */
 export interface ActionableReport {
-  /** Report metadata */
-  meta: {
-    /** Report generation timestamp */
-    generatedAt: string;
-    /** Toolkit version used */
-    toolkitVersion: string;
-    /** Analyzed URL */
-    url: string;
-    /** Strategy (mobile/desktop) */
-    strategy: "mobile" | "desktop";
-    /** Overall health status */
-    healthStatus: "healthy" | "needs-work" | "poor";
-  };
-
-  /** Executive summary for quick overview */
-  summary: {
-    /** One-line verdict */
-    headline: string;
-    /** Key findings (2-4 bullets) */
-    keyFindings: string[];
-    /** Primary bottleneck identified */
-    primaryBottleneck?: string;
-    /** Estimated total improvement possible */
-    estimatedTotalImprovementMs?: number;
-  };
-
-  /** Current performance state */
-  currentState: {
-    /** Category scores */
-    scores: CategoryScores;
-    /** Core Web Vitals with status */
-    metrics: CoreWebVitals;
-    /** How metrics compare to thresholds */
-    thresholdComparison: {
-      thresholds: PerformanceThresholds;
-      violations: Array<{
-        metric: string;
-        current: number;
-        threshold: number;
-        severity: "critical" | "warning";
-      }>;
-    };
-  };
-
-  /** LCP deep-dive section */
-  lcpAnalysis?: {
-    /** Enhanced LCP element info */
-    element: EnhancedLCPElement;
-    /** Timing breakdown */
-    breakdown: LCPBreakdown;
-    /** Critical path issues */
-    criticalPathIssues: string[];
-    /** Quick wins specific to LCP */
-    quickWins: string[];
-  };
-
-  /** Prioritized opportunities */
-  opportunities: KeyOpportunity[];
-
-  /** Detailed diagnostics */
-  diagnostics: DiagnosticItem[];
-
-  /** Prioritized next steps */
+  /** Original performance result */
+  performanceResult: PerformanceResult;
+  /** Detected project context (if available) */
+  projectContext?: ProjectContext;
+  /** Enhanced LCP element information */
+  enhancedLCP?: EnhancedLCPElement;
+  /** Enhanced diagnostics table */
+  diagnosticsTable: DiagnosticItem[];
+  /** Key opportunities ranked by impact */
+  keyOpportunities: KeyOpportunity[];
+  /** Recommended next steps */
   nextSteps: NextStep[];
-
-  /** Project context used for recommendations */
-  context?: ProjectContext;
-
-  /** Raw data references (for tools that need more detail) */
-  rawDataRefs?: {
-    /** Full API response available */
-    hasFullResponse: boolean;
-    /** Detailed insights available */
-    hasDetailedInsights: boolean;
+  /** Executive summary */
+  summary: {
+    /** Overall health status */
+    healthStatus: "healthy" | "needs-attention" | "critical";
+    /** Quick wins available */
+    quickWinsCount: number;
+    /** Total potential savings */
+    potentialSavings: {
+      timeMs: number;
+      sizeBytes: number;
+    };
+    /** Top 3 priorities */
+    topPriorities: string[];
   };
+  /** Timestamp of report generation */
+  generatedAt: string;
 }

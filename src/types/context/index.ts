@@ -14,64 +14,60 @@
  * Detected framework information
  */
 export interface FrameworkInfo {
-  /** Framework name (e.g., "Next.js", "React", "Vue") */
-  name: string;
-  /** Detected version */
-  version?: string;
-  /** Framework category */
-  category: "meta-framework" | "spa" | "static" | "server" | "unknown";
-  /** Whether framework supports SSR */
-  supportsSSR: boolean;
-  /** Whether framework supports SSG */
-  supportsSSG: boolean;
-  /** Whether framework has built-in image optimization */
-  hasImageOptimization: boolean;
-  /** Framework-specific performance features */
-  performanceFeatures: string[];
+  /** Framework name */
+  name: "next" | "react" | "vue" | "nuxt" | "angular" | "svelte" | "astro" | "remix" | "gatsby" | "unknown";
+  /** Framework version */
+  version: string;
+  /** Router type (for frameworks with multiple options) */
+  routerType?: "app" | "pages" | "file-based" | "config-based";
+  /** SSR/SSG capabilities */
+  renderingMode?: "ssr" | "ssg" | "spa" | "hybrid" | "isr";
+  /** Framework-specific features detected */
+  features?: string[];
 }
 
 /**
- * Complete project context for personalized recommendations
+ * Detected project technology stack
  */
 export interface ProjectContext {
-  /** Primary framework detected */
-  framework?: FrameworkInfo;
-  /** Additional libraries detected */
-  libraries: string[];
-  /** Build tools detected */
-  buildTools: string[];
-  /** Has TypeScript */
-  hasTypeScript: boolean;
-  /** Has ESLint */
-  hasESLint: boolean;
-  /** Has performance budget configuration */
-  hasPerformanceBudget: boolean;
-  /** Has bundle analyzer */
-  hasBundleAnalyzer: boolean;
-  /** Detected patterns (e.g., "monorepo", "microfrontend") */
-  patterns: string[];
-  /** Package manager used */
-  packageManager: "npm" | "yarn" | "pnpm" | "bun" | "unknown";
-  /** Node.js version (if detected) */
-  nodeVersion?: string;
-  /** Detected hosting/deployment platform */
-  deploymentPlatform?: "vercel" | "netlify" | "cloudflare" | "aws" | "gcp" | "azure" | "unknown";
+  /** Project name from package.json */
+  name?: string;
+  /** Framework detected */
+  framework: FrameworkInfo | null;
+  /** Package manager detected */
+  packageManager: "npm" | "yarn" | "pnpm" | "bun" | null;
+  /** Build tool detected */
+  buildTool: "webpack" | "vite" | "turbopack" | "esbuild" | "rollup" | null;
+  /** UI library detected */
+  uiLibrary?: string;
+  /** CSS solution detected */
+  cssSolution?: "tailwind" | "css-modules" | "styled-components" | "emotion" | "sass" | "vanilla" | null;
+  /** TypeScript enabled */
+  isTypeScript: boolean;
+  /** Image optimization library */
+  imageOptimization?: "next/image" | "sharp" | "imagemin" | "cloudinary" | null;
+  /** Analytics/tracking libraries */
+  analytics: string[];
+  /** Third-party integrations detected */
+  thirdPartyIntegrations: string[];
+  /** Dependencies summary */
+  dependencies: {
+    production: string[];
+    development: string[];
+    total: number;
+  };
 }
 
 /**
- * Framework-specific note for reports
+ * Framework-specific implementation note
  */
 export interface FrameworkSpecificNote {
-  /** Note ID */
-  id: string;
-  /** Which frameworks this applies to */
-  frameworks: string[];
-  /** Short title */
-  title: string;
-  /** Detailed explanation */
-  explanation: string;
-  /** Related documentation URLs */
-  docUrls?: string[];
-  /** Code example if applicable */
+  /** Framework name */
+  framework: string;
+  /** Note content */
+  note: string;
+  /** Code example */
   codeExample?: string;
+  /** Documentation link */
+  docLink?: string;
 }
