@@ -34,7 +34,8 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "bin": {
-    "perf-check": "./bin/cli.js"
+    "perf-check": "./bin/cli.js",
+    "perf-prompts": "./bin/install-prompts.js"
   },
   "exports": {
     ".": {
@@ -81,6 +82,8 @@
   "files": [
     "dist",
     "bin",
+    "src/.github/prompts",
+    "src/.github/skills",
     "README.md",
     "LICENSE",
     "CHANGELOG.md"

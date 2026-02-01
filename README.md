@@ -136,6 +136,47 @@ perf-check https://example.com --json > perf-report.json
 # 3. AI agent proposes code changes based on insights.unusedJavaScript, etc.
 ```
 
+### GitHub Copilot Prompts
+
+The toolkit includes pre-built prompts for GitHub Copilot that provide structured workflows for performance optimization.
+
+**Install prompts:**
+
+```bash
+# Create symlink to prompts (recommended - auto-updates with package)
+npx perf-prompts install
+
+# Or copy files instead (if you want to customize)
+npx perf-prompts install --copy
+
+# Check installation status
+npx perf-prompts status
+
+# Remove prompts
+npx perf-prompts uninstall
+```
+
+**Available prompts:**
+
+| Prompt | Description |
+|--------|-------------|
+| `analyze-performance` | Full performance analysis with actionable report |
+| `optimize-lcp` | LCP optimization with Next.js streaming-aware patterns |
+| `optimize-bundle` | JavaScript bundle analysis and code splitting |
+| `nextjs-performance` | Next.js App Router specific optimizations |
+| `detect-context` | Detect project technology stack |
+| `performance-audit` | Complete multi-phase audit |
+
+**Usage in VS Code:**
+
+```
+@workspace /performance/analyze-performance https://your-site.com
+@workspace /performance/optimize-lcp
+@workspace /performance/nextjs-performance
+```
+
+**Why symlinks?** Symlinks ensure prompts stay up-to-date automatically when you update the package. If you need to customize prompts, use `--copy` instead.
+
 ## API Reference
 
 ### `analyzeUrl(url, options)`

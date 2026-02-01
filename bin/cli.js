@@ -499,6 +499,305 @@ function printDetailedInsights(insights) {
 }
 
 /**
+ * Print diagnostics table in PageSpeed format
+ * @param {object} report - Actionable report object
+ */
+function printDiagnosticsTable(report) {
+  const { diagnosticsTable } = report;
+  
+  if (!diagnosticsTable || diagnosticsTable.length === 0) {
+    info("No diagnostics available");
+    return;
+  }
+
+  console.log("");
+  log("═══════════════════════════════════════════════════════════════", "dim");
+  log("📋 DIAGNOSTICS TABLE", "bright");
+  log("═══════════════════════════════════════════════════════════════", "dim");
+
+  diagnosticsTable.forEach((diag) => {
+    const severityColors = {
+      critical: "red",
+      serious: "red",
+      moderate: "yellow",
+      minor: "green",
+    };
+    const severityEmoji = {
+      critical: "🔴",
+      serious: "🟠",
+      moderate: "🟡",
+      minor: "🟢",
+    };
+    
+    const color = severityColors[diag.severity] || "reset";
+    const emoji = severityEmoji[diag.severity] || "⚪";
+    
+    console.log("");
+    console.log(`   ${emoji} ${COLORS.bright}${diag.title}${COLORS.reset}`);
+    console.log(`      ${COLORS[color]}${diag.displayValue}${COLORS.reset}`);
+    
+    // Show top items if available
+    if (diag.items && diag.items.length > 0) {
+      const topItems = diag.items.slice(0, 3);
+      topItems.forEach((item) => {
+        const label = item.url ? truncateUrl(item.url, 40) : item.label || "Unknown";
+        const size = item.wastedBytes ? formatBytes(item.wastedBytes) : 
+                     item.timeMs ? `${Math.round(item.timeMs)}ms` : "";
+        console.log(`      ${COLORS.dim}• ${label}${size ? ` (${size})` : ""}${COLORS.reset}`);
+      });
+      if (diag.items.length > 3) {
+        console.log(`      ${COLORS.dim}... and ${diag.items.length - 3} more${COLORS.reset}`);
+      }
+    }
+  });
+
+  console.log("");
+  log("═══════════════════════════════════════════════════════════════", "dim");
+}
+
+/**
+ * Print key opportunities from actionable report
+ * @param {object} report - Actionable report object
+ */
+function printKeyOpportunities(report) {
+  const { keyOpportunities, summary } = report;
+  
+  if (!keyOpportunities || keyOpportunities.length === 0) {
+    info("No key opportunities identified");
+    return;
+  }
+
+  console.log("");
+  log("═══════════════════════════════════════════════════════════════", "dim");
+  log("🎯 KEY OPPORTUNITIES", "bright");
+  log("═══════════════════════════════════════════════════════════════", "dim");
+
+  keyOpportunities.slice(0, 5).forEach((opp, index) => {
+    const impactColors = {
+      critical: "red",
+      high: "yellow",
+      medium: "cyan",
+      low: "green",
+    };
+    const impactEmoji = {
+      critical: "🔴",
+      high: "🟠",
+      medium: "🟡",
+      low: "🟢",
+    };
+    
+    const color = impactColors[opp.impact.level] || "reset";
+    const emoji = impactEmoji[opp.impact.level] || "⚪";
+    
+    console.log("");
+    console.log(`   ${index + 1}. ${emoji} ${COLORS.bright}${opp.title}${COLORS.reset}`);
+    console.log(`      Impact: ${COLORS[color]}${opp.impact.level.toUpperCase()}${COLORS.reset}`);
+    
+    if (opp.impact.lcpImprovementMs) {
+      console.log(`      Est. LCP improvement: ${COLORS.green}-${opp.impact.lcpImprovementMs}ms${COLORS.reset}`);
+    }
+    if (opp.impact.sizeSavings) {
+      console.log(`      Est. size savings: ${COLORS.green}${formatBytes(opp.impact.sizeSavings)}${COLORS.reset}`);
+    }
+    
+    // Show first step
+    if (opp.steps && opp.steps.length > 0) {
+      console.log(`      ${COLORS.dim}Next step: ${opp.steps[0].title}${COLORS.reset}`);
+    }
+    
+    // Show framework-specific note if available
+    if (opp.frameworkNotes && opp.frameworkNotes.length > 0) {
+      console.log(`      ${COLORS.cyan}💡 ${opp.frameworkNotes[0].framework}: ${opp.frameworkNotes[0].note.substring(0, 60)}...${COLORS.reset}`);
+    }
+  });
+
+  if (keyOpportunities.length > 5) {
+    console.log("");
+    info(`   ... and ${keyOpportunities.length - 5} more opportunities`);
+  }
+
+  // Summary
+  console.log("");
+  log("───────────────────────────────────────────────────────────────", "dim");
+  log("📊 Summary", "cyan");
+  
+  const statusColors = {
+    healthy: "green",
+    "needs-attention": "yellow",
+    critical: "red",
+  };
+  const statusEmoji = {
+    healthy: "✅",
+    "needs-attention": "⚠️",
+    critical: "❌",
+  };
+  
+  const statusColor = statusColors[summary.healthStatus] || "reset";
+  const statusEm = statusEmoji[summary.healthStatus] || "⚪";
+  
+  console.log(`   Status: ${statusEm} ${COLORS[statusColor]}${summary.healthStatus.toUpperCase()}${COLORS.reset}`);
+  console.log(`   Quick wins available: ${summary.quickWinsCount}`);
+  console.log(`   Potential time savings: ${COLORS.green}~${summary.potentialSavings.timeMs}ms${COLORS.reset}`);
+  console.log(`   Potential size savings: ${COLORS.green}${formatBytes(summary.potentialSavings.sizeBytes)}${COLORS.reset}`);
+  
+  console.log("");
+  log("   Top Priorities:", "bright");
+  summary.topPriorities.forEach((p, i) => {
+    console.log(`      ${i + 1}. ${p}`);
+  });
+
+  console.log("");
+  log("═══════════════════════════════════════════════════════════════", "dim");
+}
+
+/**
+ * Print next steps from actionable report
+ * @param {object} report - Actionable report object
+ */
+function printNextSteps(report) {
+  const { nextSteps } = report;
+  
+  if (!nextSteps || nextSteps.length === 0) return;
+
+  console.log("");
+  log("📝 RECOMMENDED NEXT STEPS", "cyan");
+  log("───────────────────────────────────────────────────────────────", "dim");
+  
+  nextSteps.forEach((step, index) => {
+    const urgencyEmoji = {
+      immediate: "🔴",
+      soon: "🟡",
+      "when-possible": "🟢",
+    };
+    const emoji = urgencyEmoji[step.urgency] || "⚪";
+    
+    console.log(`   ${index + 1}. ${emoji} ${step.title}`);
+    console.log(`      ${COLORS.dim}${step.description}${COLORS.reset}`);
+  });
+  
+  console.log("");
+}
+
+/**
+ * Print enhanced LCP element information
+ * @param {object} enhancedLCP - Enhanced LCP element object
+ */
+function printEnhancedLCP(enhancedLCP) {
+  if (!enhancedLCP) return;
+
+  console.log("");
+  log("═══════════════════════════════════════════════════════════════", "dim");
+  log("🖼️  LCP ELEMENT DETECTION", "bright");
+  log("═══════════════════════════════════════════════════════════════", "dim");
+
+  console.log("");
+  console.log(`   Type:      ${COLORS.cyan}${enhancedLCP.type}${COLORS.reset}`);
+  console.log(`   Tag:       ${enhancedLCP.tagName}`);
+  console.log(`   Selector:  ${enhancedLCP.selector || "N/A"}`);
+  
+  if (enhancedLCP.url) {
+    console.log(`   URL:       ${truncateUrl(enhancedLCP.url, 50)}`);
+  }
+  
+  console.log(`   Loading:   ${enhancedLCP.loadingMechanism || "unknown"}`);
+  
+  // Timing breakdown
+  if (enhancedLCP.timing) {
+    console.log("");
+    log("   Timing Breakdown:", "magenta");
+    console.log(`      Request Start:  ${COLORS.yellow}${enhancedLCP.timing.requestStart || 0}ms${COLORS.reset}`);
+    console.log(`      Load End:       ${COLORS.yellow}${enhancedLCP.timing.loadEnd || 0}ms${COLORS.reset}`);
+    console.log(`      Render Time:    ${COLORS.yellow}${enhancedLCP.timing.renderTime || 0}ms${COLORS.reset}`);
+  }
+
+  // Recommendations
+  if (enhancedLCP.recommendations && enhancedLCP.recommendations.length > 0) {
+    console.log("");
+    log("   Recommendations:", "magenta");
+    enhancedLCP.recommendations.slice(0, 3).forEach((rec) => {
+      const impactColor = rec.impact === "high" ? "red" : rec.impact === "medium" ? "yellow" : "green";
+      console.log(`      ${COLORS[impactColor]}[${rec.impact}]${COLORS.reset} ${rec.title}`);
+      if (rec.codeHints && rec.codeHints.length > 0) {
+        console.log(`         ${COLORS.dim}Hint: ${rec.codeHints[0]}${COLORS.reset}`);
+      }
+    });
+  }
+
+  console.log("");
+  log("═══════════════════════════════════════════════════════════════", "dim");
+}
+
+/**
+ * Print project context detection
+ * @param {object} context - Project context object
+ */
+function printProjectContext(context) {
+  if (!context) {
+    warn("Could not detect project context");
+    return;
+  }
+
+  console.log("");
+  log("═══════════════════════════════════════════════════════════════", "dim");
+  log("🔍 PROJECT CONTEXT", "bright");
+  log("═══════════════════════════════════════════════════════════════", "dim");
+
+  if (context.name) {
+    console.log(`   Project:     ${COLORS.cyan}${context.name}${COLORS.reset}`);
+  }
+  
+  if (context.framework) {
+    console.log("");
+    log("   Framework:", "magenta");
+    console.log(`      Name:        ${COLORS.bright}${context.framework.name}${COLORS.reset}`);
+    console.log(`      Version:     ${context.framework.version}`);
+    if (context.framework.routerType) {
+      console.log(`      Router:      ${context.framework.routerType}`);
+    }
+    if (context.framework.renderingMode) {
+      console.log(`      Rendering:   ${context.framework.renderingMode}`);
+    }
+    if (context.framework.features && context.framework.features.length > 0) {
+      console.log(`      Features:    ${context.framework.features.join(", ")}`);
+    }
+  }
+
+  if (context.cssSolution) {
+    console.log(`   CSS:         ${context.cssSolution}`);
+  }
+  
+  if (context.uiLibrary) {
+    console.log(`   UI Library:  ${context.uiLibrary}`);
+  }
+  
+  console.log(`   TypeScript:  ${context.isTypeScript ? "Yes" : "No"}`);
+  
+  if (context.buildTool) {
+    console.log(`   Build Tool:  ${context.buildTool}`);
+  }
+
+  if (context.analytics && context.analytics.length > 0) {
+    console.log("");
+    log("   Analytics:", "magenta");
+    context.analytics.forEach((a) => console.log(`      • ${a}`));
+  }
+
+  if (context.thirdPartyIntegrations && context.thirdPartyIntegrations.length > 0) {
+    console.log("");
+    log("   Integrations:", "magenta");
+    context.thirdPartyIntegrations.forEach((i) => console.log(`      • ${i}`));
+  }
+
+  console.log("");
+  console.log(`   Dependencies: ${context.dependencies.total} total`);
+  console.log(`      Production: ${context.dependencies.production.length}`);
+  console.log(`      Development: ${context.dependencies.development.length}`);
+
+  console.log("");
+  log("═══════════════════════════════════════════════════════════════", "dim");
+}
+
+/**
  * Check thresholds and return violations
  * @param {object} result - Performance result
  * @param {object} thresholds - Threshold configuration
@@ -590,6 +889,9 @@ function parseArgs() {
     strategy: "mobile",
     verbose: false,
     insights: false,
+    diagnostics: false,
+    actionable: false,
+    detectContext: false,
     json: false,
     ci: false,
     config: null,
@@ -621,6 +923,18 @@ function parseArgs() {
       case "--insights":
       case "-i":
         options.insights = true;
+        break;
+      case "--diagnostics":
+      case "--diag":
+        options.diagnostics = true;
+        break;
+      case "--actionable":
+      case "-a":
+        options.actionable = true;
+        break;
+      case "--detect-context":
+      case "--context":
+        options.detectContext = true;
         break;
       case "--json":
       case "-j":
@@ -666,6 +980,9 @@ function showHelp() {
   console.log("  --desktop, -d      Use desktop strategy");
   console.log("  --verbose, -v      Show detailed output including opportunities");
   console.log("  --insights, -i     Show all detailed insights (for AI agents)");
+  console.log("  --diagnostics      Show diagnostics table (PageSpeed format)");
+  console.log("  --actionable, -a   Generate actionable report with key opportunities");
+  console.log("  --detect-context   Detect project technology stack");
   console.log("  --json, -j         Output structured JSON (for programmatic use)");
   console.log("  --ci               CI mode (exit code 1 on threshold violations)");
   console.log("  --config, -c       Path to configuration file");
@@ -674,11 +991,13 @@ function showHelp() {
   console.log("  --help, -h         Show this help message\n");
 
   log("Examples:", "cyan");
-  console.log("  perf-check https://www.familyassets.com");
-  console.log("  perf-check https://www.familyassets.com --desktop --verbose");
-  console.log("  perf-check https://www.familyassets.com --insights");
-  console.log("  perf-check https://www.familyassets.com --json > report.json");
-  console.log("  perf-check https://www.familyassets.com --ci --output results.json\n");
+  console.log("  perf-check https://www.example.com");
+  console.log("  perf-check https://www.example.com --desktop --verbose");
+  console.log("  perf-check https://www.example.com --insights");
+  console.log("  perf-check https://www.example.com --actionable");
+  console.log("  perf-check https://www.example.com --diagnostics");
+  console.log("  perf-check https://www.example.com --json > report.json");
+  console.log("  perf-check https://www.example.com --ci --output results.json\n");
 
   log("Environment Variables:", "cyan");
   console.log("  PAGESPEED_API_KEY  Google PageSpeed API key (recommended for higher rate limits)");
@@ -695,8 +1014,9 @@ function showHelp() {
   console.log("  export PAGESPEED_API_KEY=$PAGESPEED_API_KEY\n");
 
   log("AI Agent Usage:", "cyan");
-  console.log("  Use --insights flag for detailed data that AI agents can use to");
-  console.log("  identify optimization opportunities and propose specific code changes.");
+  console.log("  Use --actionable for framework-aware recommendations that consider");
+  console.log("  your project's technology stack (Next.js, React, Vue, etc.).");
+  console.log("  Use --diagnostics for a PageSpeed-style diagnostics table.");
   console.log("  Use --json for machine-readable output.\n");
 }
 
@@ -751,6 +1071,29 @@ async function main() {
 
     // JSON output mode
     if (options.json) {
+      let projectContext = null;
+      let actionableReport = null;
+      
+      // Include project context if requested
+      if (options.detectContext || options.actionable) {
+        try {
+          const { detectProjectContext } = await import("../dist/index.js");
+          projectContext = await detectProjectContext(process.cwd());
+        } catch {
+          // Silently ignore context detection errors in JSON mode
+        }
+      }
+      
+      // Include actionable report if requested
+      if (options.actionable || options.diagnostics) {
+        try {
+          const { generateActionableReport } = await import("../dist/index.js");
+          actionableReport = generateActionableReport(result, projectContext);
+        } catch {
+          // Silently ignore report generation errors in JSON mode
+        }
+      }
+      
       const outputData = {
         url: result.url,
         strategy: result.strategy,
@@ -772,6 +1115,14 @@ async function main() {
           savingsMs: op.savingsMs,
           savingsBytes: op.savingsBytes,
         })),
+        // Include enhanced data when available
+        ...(projectContext && { projectContext }),
+        ...(actionableReport && {
+          enhancedLCP: actionableReport.enhancedLCP,
+          diagnostics: actionableReport.diagnostics,
+          keyOpportunities: actionableReport.keyOpportunities,
+          nextSteps: actionableReport.nextSteps,
+        }),
       };
       console.log(JSON.stringify(outputData, null, 2));
       process.exit(0);
@@ -788,6 +1139,79 @@ async function main() {
     // Print detailed insights if requested
     if (options.insights && result.insights) {
       printDetailedInsights(result.insights);
+    }
+
+    // Dynamic imports for new features (only when needed)
+    let projectContext = null;
+    let actionableReport = null;
+
+    // Detect project context if requested
+    if (options.detectContext || options.actionable) {
+      try {
+        const { detectProjectContext } = await import("../dist/index.js");
+        projectContext = await detectProjectContext(process.cwd());
+        
+        if (options.detectContext && !options.actionable) {
+          printProjectContext(projectContext);
+        }
+      } catch (ctxErr) {
+        if (options.verbose) {
+          warn(`Could not detect project context: ${ctxErr.message}`);
+        }
+      }
+    }
+
+    // Generate actionable report if requested
+    if (options.actionable) {
+      try {
+        const { generateActionableReport } = await import("../dist/index.js");
+        actionableReport = generateActionableReport(result, projectContext);
+        
+        // Print enhanced LCP element info
+        if (actionableReport.enhancedLCP) {
+          printEnhancedLCP(actionableReport.enhancedLCP);
+        }
+        
+        // Print diagnostics table
+        if (actionableReport.diagnostics && actionableReport.diagnostics.length > 0) {
+          printDiagnosticsTable(actionableReport.diagnostics);
+        }
+        
+        // Print project context
+        if (projectContext) {
+          printProjectContext(projectContext);
+        }
+        
+        // Print key opportunities
+        if (actionableReport.keyOpportunities && actionableReport.keyOpportunities.length > 0) {
+          printKeyOpportunities(actionableReport.keyOpportunities);
+        }
+        
+        // Print next steps
+        if (actionableReport.nextSteps && actionableReport.nextSteps.length > 0) {
+          printNextSteps(actionableReport.nextSteps);
+        }
+      } catch (reportErr) {
+        if (options.verbose) {
+          warn(`Could not generate actionable report: ${reportErr.message}`);
+        }
+      }
+    }
+
+    // Print diagnostics table only (without full actionable report)
+    if (options.diagnostics && !options.actionable) {
+      try {
+        const { generateActionableReport } = await import("../dist/index.js");
+        const partialReport = generateActionableReport(result, null);
+        
+        if (partialReport.diagnostics && partialReport.diagnostics.length > 0) {
+          printDiagnosticsTable(partialReport.diagnostics);
+        }
+      } catch (diagErr) {
+        if (options.verbose) {
+          warn(`Could not generate diagnostics: ${diagErr.message}`);
+        }
+      }
     }
 
     // Save output if requested

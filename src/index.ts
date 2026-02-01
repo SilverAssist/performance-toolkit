@@ -47,6 +47,20 @@ export {
   getDefaultThresholds,
 } from "./lighthouse";
 
+// Project Context Detection exports
+export {
+  ProjectContextDetector,
+  createContextDetector,
+  detectProjectContext,
+} from "./context";
+
+// Actionable Report Generation exports
+export {
+  ActionableReportGenerator,
+  createReportGenerator,
+  generateActionableReport,
+} from "./report";
+
 // Type exports
 export type {
   // Core types
@@ -92,6 +106,20 @@ export type {
   CLIOptions,
   CLIResult,
   ThresholdViolation,
+  // Diagnostics & Enhanced LCP types
+  DiagnosticItem,
+  DiagnosticDetailItem,
+  EnhancedLCPElement,
+  LCPRecommendation,
+  // Project Context types
+  ProjectContext,
+  FrameworkInfo,
+  // Actionable Report types
+  KeyOpportunity,
+  ActionStep,
+  FrameworkSpecificNote,
+  NextStep,
+  ActionableReport,
 } from "./types";
 
 /**

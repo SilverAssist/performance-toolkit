@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+#### Types Refactoring (DDD Pattern)
+
+- **Reorganized `src/types/` folder** following Domain-Driven Design pattern with barrel exports
+- Split monolithic 967-line `index.ts` into 8 domain-specific modules:
+  - `metrics/` - Core Web Vitals, MetricValue, CategoryScores
+  - `pagespeed/` - PageSpeed API types (Strategy, Category, Options, Response, CrUX, Lighthouse)
+  - `lighthouse/` - LHCI types (Method, Options, Assertions, Config)
+  - `analysis/` - Results, diagnostics, opportunities, LCP elements, insights
+  - `context/` - ProjectContext, FrameworkInfo
+  - `report/` - ActionableReport, KeyOpportunity, NextStep
+  - `cli/` - CLIOptions, CLIResult, ThresholdViolation
+  - `config/` - PerformanceThresholds, ProjectConfig, ToolkitConfig
+- Main `index.ts` now re-exports all domains using `export type {}` pattern
+- Added JSDoc `@packageDocumentation` to each domain module
+- **Backward compatible** - existing imports continue to work
+
+#### Project Organization
+
+- Moved distributable Copilot prompts and skills from `.github/` to `src/.github/`
+  - Separates repository config from installable content
+  - Updated `bin/install-prompts.js` paths
+  - Updated `package.json` files array
+- Updated `copilot-instructions.md` with current architecture documentation
+
 ## [0.1.0] - 2026-01-30
 
 ### Added
