@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-02-01
+
+### Added
+
+- **Expanded test coverage** - Increased from 27.77% to 95.58% statements, 9.58% to 80.82% branches
+  - Added comprehensive tests for `report/` module (utils, diagnostics, lcp, opportunities, generator)
+  - Added tests for `context/` module with mocked filesystem
+  - Added tests for `pagespeed/utils.ts` and `pagespeed/insights.ts`
+  - Total: 242 tests across 10 test suites
+
+### Changed
+
+- **Improved prompt installer** (`bin/install-prompts.js`) - Major overhaul for better VS Code integration
+  - Install prompts at root level (`.github/prompts/`) for proper VS Code recognition
+  - Added manifest tracking (`.perf-toolkit-manifest.json`) to safely manage installed files
+  - Safe directory names to protect user files from accidental overwrites
+  - Prefixed prompt files with `performance/` namespace for organization
+
+### Fixed
+
+- **Type errors in test files** - Fixed MetricValue interface usage (removed non-existent `score` property)
+- **AuditDetails type compliance** - Added required `type` field to mock audit details
+- **ProjectContext completeness** - Added missing `buildTool` property in test fixtures
+- **Prompt partial references** - Fixed relative paths in `nextjs-performance.prompt.md` and `optimize-lcp.prompt.md`
+
 ## [0.2.0] - 2026-02-01
 
 ### Changed
