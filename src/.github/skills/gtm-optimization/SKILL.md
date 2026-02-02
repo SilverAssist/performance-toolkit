@@ -206,11 +206,15 @@ TBT Impact: ~50ms (after hydration)
 Bundle Size: Tree-shaken, only loads what's needed
 ```
 
-**Typical Improvements** (ranges vary significantly based on implementation):
+**Typical Improvements** (compared to inline Script with lazyOnload strategy):
 - **TBT reduction**: 40-60% (depends on GTM tag complexity and existing page weight)
 - **FCP improvement**: 15-25% (varies by network conditions and device)
 - **Bundle size**: 10-15% smaller (depends on existing third-party script usage)
 - **Cleaner code**: Better maintainability (consistently achieved)
+
+> These percentages represent the improvement when migrating from the suboptimal
+> Script approach (inline strings with lazyOnload) to the dynamic import pattern
+> with @next/third-parties. Your actual results may be higher or lower.
 
 **Factors Affecting Results:**
 - Complexity of GTM container (number of tags, triggers, variables)
@@ -328,8 +332,11 @@ npm run dev
 npm run build
 npm start
 
-# Run PageSpeed Insights
+# Run PageSpeed Insights (using this package's CLI)
 npx perf-check http://localhost:3000 --mobile --insights
+
+# Alternative: Use Lighthouse CLI directly
+npx lighthouse http://localhost:3000 --view
 
 # Compare TBT before/after migration
 ```
