@@ -11,7 +11,7 @@ Optimize performance for Next.js App Router applications with streaming-aware pa
 
 - Run `analyze-performance` first to identify issues
 - Access to the codebase
-- Reference: `.github/prompts/_partials/performance-patterns.md`
+- Reference: `.github/prompts/_partials-performance/performance-patterns.md`
 
 ## Critical Learnings
 

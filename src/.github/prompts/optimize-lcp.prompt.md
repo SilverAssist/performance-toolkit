@@ -11,7 +11,7 @@ Optimize the Largest Contentful Paint element to achieve < 2.5 seconds.
 
 - Run `analyze-performance` first to identify the LCP element
 - Access to the codebase
-- Reference: `.github/prompts/_partials/performance-patterns.md`
+- Reference: `.github/prompts/_partials-performance/performance-patterns.md`
 
 ## Context Required
 
