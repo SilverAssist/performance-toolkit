@@ -86,11 +86,19 @@ import dynamic from "next/dynamic";
  * Google recommends loading GTM "as high as possible in <head>" to capture all events
  * from the start of the session. However, this creates render-blocking JavaScript.
  * 
- * This pattern provides the best balance:
+ * This pattern intentionally trades early event capture for improved performance by
+ * loading GTM in the body after hydration. This is a deliberate design choice where:
+ * - Traditional implementation: GTM in <head> blocks initial render
+ * - This implementation: GTM loads dynamically after hydration completes
+ * - Trade-off: May miss some very early events (before hydration) in exchange for
+ *   significantly improved FCP, LCP, and TBT metrics
+ * - In practice: Most user interactions happen after hydration, so minimal data loss
+ * 
+ * Benefits of this approach:
  * - No render blocking during initial paint
  * - Loads after hydration, captures user interactions
  * - Uses official Vercel-maintained component
- * - Includes optimization not available with manual Script tags
+ * - Includes optimizations not available with manual Script tags
  *
  * @see {@link https://support.google.com/tagmanager/answer/14847097 | Google Tag Manager Best Practices}
  * @see {@link https://vercel.com/blog/how-we-optimized-package-imports-in-next-js | Vercel: Package Import Optimization}
@@ -178,6 +186,10 @@ NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
 
 ## Performance Benefits
 
+> **Note**: These metrics are representative measurements from production implementations.
+> Actual values will vary based on GTM configuration complexity, number of tags, network
+> conditions, device capabilities, and overall page weight.
+
 ### Before: Script with lazyOnload
 ```
 HTML Size: ~45KB (includes inline script)
@@ -194,11 +206,18 @@ TBT Impact: ~50ms (after hydration)
 Bundle Size: Tree-shaken, only loads what's needed
 ```
 
-**Typical Improvements:**
-- **TBT reduction**: 40-60%
-- **FCP improvement**: 15-25%
-- **Bundle size**: 10-15% smaller
-- **Cleaner code**: Better maintainability
+**Typical Improvements** (ranges vary significantly based on implementation):
+- **TBT reduction**: 40-60% (depends on GTM tag complexity and existing page weight)
+- **FCP improvement**: 15-25% (varies by network conditions and device)
+- **Bundle size**: 10-15% smaller (depends on existing third-party script usage)
+- **Cleaner code**: Better maintainability (consistently achieved)
+
+**Factors Affecting Results:**
+- Complexity of GTM container (number of tags, triggers, variables)
+- Existing third-party scripts on the page
+- Overall page weight and JavaScript bundle size
+- Network conditions and CDN performance
+- Device capabilities (mobile vs desktop, CPU speed)
 
 ## Alternative: Google Analytics Only
 
