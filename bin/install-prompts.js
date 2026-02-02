@@ -178,7 +178,47 @@ function isOurSymlink(targetPath, packagePromptsPath) {
 }
 
 /**
+ * Get the path to the manifest file that tracks installed prompts
+ */
+function getManifestPath(projectRoot) {
+  return path.resolve(projectRoot, ".github", "prompts", ".perf-prompts-manifest.json");
+}
+
+/**
+ * Read the manifest file
+ */
+function readManifest(projectRoot) {
+  const manifestPath = getManifestPath(projectRoot);
+  if (!fs.existsSync(manifestPath)) {
+    return { files: [], directories: [], installedAt: null, version: "1.0" };
+  }
+
+  try {
+    const content = fs.readFileSync(manifestPath, "utf-8");
+    return JSON.parse(content);
+  } catch {
+    return { files: [], directories: [], installedAt: null, version: "1.0" };
+  }
+}
+
+/**
+ * Write the manifest file
+ */
+function writeManifest(projectRoot, files, directories) {
+  const manifestPath = getManifestPath(projectRoot);
+  const manifest = {
+    version: "1.0",
+    installedAt: new Date().toISOString(),
+    files,
+    directories,
+  };
+
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), "utf-8");
+}
+
+/**
  * Get list of prompt files and directories to install
+ * Renames directories to avoid conflicts (e.g., _partials -> _partials-performance)
  */
 function getInstallableItems(packagePromptsPath) {
   const items = fs.readdirSync(packagePromptsPath, { withFileTypes: true });
@@ -187,7 +227,9 @@ function getInstallableItems(packagePromptsPath) {
 
   for (const item of items) {
     if (item.isDirectory()) {
-      directories.push(item.name);
+      // Rename directories to avoid conflicts with user's files
+      const safeName = item.name === "_partials" ? "_partials-performance" : `${item.name}-performance`;
+      directories.push({ original: item.name, target: safeName });
     } else if (item.name.endsWith(".prompt.md")) {
       promptFiles.push(item.name);
     }
@@ -211,11 +253,11 @@ function checkExistingInstallation(targetDir, packagePromptsPath) {
     }
   }
 
-  // Check directories
+  // Check directories (using safe names)
   for (const dir of directories) {
-    const targetPath = path.join(targetDir, dir);
+    const targetPath = path.join(targetDir, dir.target);
     if (fs.existsSync(targetPath)) {
-      existing.push({ type: "directory", name: dir, path: targetPath });
+      existing.push({ type: "directory", name: dir.target, path: targetPath });
     }
   }
 
@@ -353,6 +395,8 @@ function install(options = {}) {
   }
 
   let installedCount = 0;
+  const installedFiles = [];
+  const installedDirs = [];
 
   // Install prompt files
   for (const file of promptFiles) {
@@ -362,33 +406,39 @@ function install(options = {}) {
     if (copy) {
       fs.copyFileSync(sourcePath, targetPath);
       installedCount++;
+      installedFiles.push(file);
     } else {
       const relativePath = path.relative(targetDir, sourcePath);
       fs.symlinkSync(relativePath, targetPath, "file");
       installedCount++;
+      installedFiles.push(file);
     }
   }
 
-  // Install directories (_partials, etc.)
+  // Install directories (_partials, etc.) with safe names
   for (const dir of directories) {
-    const sourcePath = path.join(packagePromptsPath, dir);
-    const targetPath = path.join(targetDir, dir);
+    const sourcePath = path.join(packagePromptsPath, dir.original);
+    const targetPath = path.join(targetDir, dir.target);
 
     if (copy) {
       copyDirectory(sourcePath, targetPath);
+      installedDirs.push(dir.target);
     } else {
       const relativePath = path.relative(targetDir, sourcePath);
       fs.symlinkSync(relativePath, targetPath, "dir");
+      installedDirs.push(dir.target);
     }
   }
+
+  // Write manifest to track what we installed
+  writeManifest(projectRoot, installedFiles, installedDirs);
 
   console.log("");
   if (copy) {
     success(`${installedCount} prompt files copied to: ${targetDir}`);
     if (directories.length > 0) {
-      success(
-        `${directories.length} directories copied: ${directories.join(", ")}`,
-      );
+      const dirNames = directories.map((d) => d.target).join(", ");
+      success(`${directories.length} directories copied: ${dirNames}`);
     }
     warn("Note: Copied prompts won't auto-update when the package is updated.");
     warn(
@@ -397,9 +447,8 @@ function install(options = {}) {
   } else {
     success(`${installedCount} prompt files symlinked to: ${targetDir}`);
     if (directories.length > 0) {
-      success(
-        `${directories.length} directories symlinked: ${directories.join(", ")}`,
-      );
+      const dirNames = directories.map((d) => d.target).join(", ");
+      success(`${directories.length} directories symlinked: ${dirNames}`);
     }
     info("Prompts will auto-update when you update the package!");
   }
@@ -500,16 +549,14 @@ function uninstall(options = {}) {
   let removedPrompts = false;
   let removedSkills = false;
 
-  // Get the package prompts path to know what we installed
-  const context = detectInstallationContext();
-  const effectiveInstallPath = context.installedPath || path.resolve(__dirname, "..");
-  const packagePromptsPath = getPackagePromptsPath(effectiveInstallPath);
+  // Read manifest to know exactly what we installed
+  const manifest = readManifest(projectRoot);
 
-  if (fs.existsSync(packagePromptsPath)) {
-    const { promptFiles, directories } = getInstallableItems(packagePromptsPath);
+  if (manifest.files.length > 0 || manifest.directories.length > 0) {
+    info(`Removing prompts installed on ${manifest.installedAt || "unknown date"}`);
 
-    // Remove prompt files
-    for (const file of promptFiles) {
+    // Remove prompt files from manifest
+    for (const file of manifest.files) {
       const targetPath = path.join(targetDir, file);
       if (fs.existsSync(targetPath)) {
         const stats = fs.lstatSync(targetPath);
@@ -522,8 +569,8 @@ function uninstall(options = {}) {
       }
     }
 
-    // Remove directories
-    for (const dir of directories) {
+    // Remove directories from manifest
+    for (const dir of manifest.directories) {
       const targetPath = path.join(targetDir, dir);
       if (fs.existsSync(targetPath)) {
         const stats = fs.lstatSync(targetPath);
@@ -534,38 +581,82 @@ function uninstall(options = {}) {
         }
         removedPrompts = true;
       }
+    }
+
+    // Remove manifest file
+    const manifestPath = getManifestPath(projectRoot);
+    if (fs.existsSync(manifestPath)) {
+      fs.unlinkSync(manifestPath);
     }
   } else {
-    // Fallback: remove known prompt files if package prompts not found
-    warn("Package prompts not found, attempting to remove common prompt files");
-    const knownPrompts = [
-      "analyze-performance.prompt.md",
-      "detect-context.prompt.md",
-      "nextjs-performance.prompt.md",
-      "optimize-bundle.prompt.md",
-      "optimize-lcp.prompt.md",
-      "performance-audit.prompt.md",
-    ];
-    const knownDirs = ["_partials"];
+    // Fallback: No manifest found, try to detect and remove our files
+    warn("No manifest found, attempting to detect and remove performance-toolkit prompts");
 
-    for (const file of knownPrompts) {
-      const targetPath = path.join(targetDir, file);
-      if (fs.existsSync(targetPath)) {
-        fs.unlinkSync(targetPath);
-        removedPrompts = true;
-      }
-    }
+    const context = detectInstallationContext();
+    const effectiveInstallPath = context.installedPath || path.resolve(__dirname, "..");
+    const packagePromptsPath = getPackagePromptsPath(effectiveInstallPath);
 
-    for (const dir of knownDirs) {
-      const targetPath = path.join(targetDir, dir);
-      if (fs.existsSync(targetPath)) {
-        const stats = fs.lstatSync(targetPath);
-        if (stats.isSymbolicLink()) {
-          fs.unlinkSync(targetPath);
-        } else {
-          fs.rmSync(targetPath, { recursive: true });
+    if (fs.existsSync(packagePromptsPath)) {
+      const { promptFiles, directories } = getInstallableItems(packagePromptsPath);
+
+      // Remove prompt files
+      for (const file of promptFiles) {
+        const targetPath = path.join(targetDir, file);
+        if (fs.existsSync(targetPath)) {
+          const stats = fs.lstatSync(targetPath);
+          if (stats.isSymbolicLink()) {
+            fs.unlinkSync(targetPath);
+          } else {
+            fs.unlinkSync(targetPath);
+          }
+          removedPrompts = true;
         }
-        removedPrompts = true;
+      }
+
+      // Remove directories (with safe names)
+      for (const dir of directories) {
+        const targetPath = path.join(targetDir, dir.target);
+        if (fs.existsSync(targetPath)) {
+          const stats = fs.lstatSync(targetPath);
+          if (stats.isSymbolicLink()) {
+            fs.unlinkSync(targetPath);
+          } else {
+            fs.rmSync(targetPath, { recursive: true });
+          }
+          removedPrompts = true;
+        }
+      }
+    } else {
+      // Last resort: remove known files with safe names
+      const knownPrompts = [
+        "analyze-performance.prompt.md",
+        "detect-context.prompt.md",
+        "nextjs-performance.prompt.md",
+        "optimize-bundle.prompt.md",
+        "optimize-lcp.prompt.md",
+        "performance-audit.prompt.md",
+      ];
+      const knownDirs = ["_partials-performance"];
+
+      for (const file of knownPrompts) {
+        const targetPath = path.join(targetDir, file);
+        if (fs.existsSync(targetPath)) {
+          fs.unlinkSync(targetPath);
+          removedPrompts = true;
+        }
+      }
+
+      for (const dir of knownDirs) {
+        const targetPath = path.join(targetDir, dir);
+        if (fs.existsSync(targetPath)) {
+          const stats = fs.lstatSync(targetPath);
+          if (stats.isSymbolicLink()) {
+            fs.unlinkSync(targetPath);
+          } else {
+            fs.rmSync(targetPath, { recursive: true });
+          }
+          removedPrompts = true;
+        }
       }
     }
   }
