@@ -153,6 +153,11 @@ git branch --show-current
    - Check workflow: https://github.com/SilverAssist/performance-toolkit/actions
    - Check npm: https://www.npmjs.com/package/@silverassist/performance-toolkit
 
+5. Sync tags locally:
+   ```bash
+   git fetch --tags
+   ```
+
 ---
 
 ## Post-Release Verification
