@@ -12,8 +12,11 @@ PageSpeed Insights and Lighthouse CI integration for performance monitoring acro
 - ✅ **Core Web Vitals** - LCP, FCP, CLS, TBT extraction
 - ✅ **LCP Element Detection** - Identify the LCP element
 - ✅ **Opportunities & Diagnostics** - Performance improvement suggestions
+- ✅ **Actionable Reports** - Framework-aware optimization recommendations
+- ✅ **Project Context Detection** - Auto-detect Next.js, React, Vue, etc.
 - ✅ **CLI Tool** - Command-line interface for quick analysis
-- ✅ **TypeScript** - Full type definitions included
+- ✅ **Copilot Prompts & Skills** - Pre-built AI workflows for performance optimization
+- ✅ **TypeScript** - Full type definitions with subpath exports
 - ✅ **Multi-Project** - Support for FA, CC, AA, OSA
 
 ## Installation
@@ -95,11 +98,15 @@ perf-check https://www.example.com --ci --output results.json
 |--------|-------|-------------|
 | `--mobile` | `-m` | Use mobile strategy (default) |
 | `--desktop` | `-d` | Use desktop strategy |
-| `--verbose` | `-v` | Show detailed output |
+| `--verbose` | `-v` | Show detailed output including opportunities |
 | `--insights` | `-i` | Show all detailed insights (for AI agents) |
+| `--diagnostics` | | Show diagnostics table (PageSpeed format) |
+| `--actionable` | `-a` | Generate actionable report with key opportunities |
+| `--detect-context` | | Detect project technology stack |
 | `--json` | `-j` | Output structured JSON (for programmatic use) |
 | `--ci` | | CI mode (exit with error on violations) |
 | `--output` | `-o` | Output results to JSON file |
+| `--baseline` | `-b` | Compare against baseline file |
 | `--config` | `-c` | Path to configuration file |
 | `--help` | `-h` | Show help message |
 
@@ -177,6 +184,17 @@ npx perf-prompts uninstall
 
 **Why symlinks?** Symlinks ensure prompts stay up-to-date automatically when you update the package. If you need to customize prompts, use `--copy` instead.
 
+### Agent Skills
+
+Agent Skills are auto-loaded by GitHub Copilot based on context relevance (requires `chat.useAgentSkills` setting in VS Code).
+
+| Skill | Description |
+|-------|-------------|
+| `nextjs-performance` | Next.js App Router performance patterns |
+| `web-performance-analysis` | General web performance optimization |
+
+Skills are installed automatically with `npx perf-prompts install`.
+
 ## API Reference
 
 ### `analyzeUrl(url, options)`
@@ -252,6 +270,36 @@ const standard = getDefaultThresholds();
 // Strict thresholds
 const strict = getDefaultThresholds(true);
 // { performance: 90, lcp: 2500, fcp: 1800, cls: 0.1, tbt: 200 }
+```
+
+### `detectProjectContext()`
+
+Detect the project's technology stack:
+
+```typescript
+import { detectProjectContext } from "@silverassist/performance-toolkit";
+
+const context = await detectProjectContext();
+
+console.log(context.framework); // { name: "Next.js", version: "14.2.0" }
+console.log(context.isSSR);     // true
+console.log(context.hasAppDir); // true
+```
+
+### `generateActionableReport(result, context?)`
+
+Generate an actionable report with framework-specific recommendations:
+
+```typescript
+import { analyzeUrl, generateActionableReport, detectProjectContext } from "@silverassist/performance-toolkit";
+
+const result = await analyzeUrl("https://example.com");
+const context = await detectProjectContext();
+const report = generateActionableReport(result, context);
+
+console.log(report.keyOpportunities);  // Top 3 prioritized opportunities
+console.log(report.lcpAnalysis);       // LCP breakdown and recommendations
+console.log(report.nextSteps);         // Prioritized action items
 ```
 
 ## Performance Result
@@ -373,6 +421,21 @@ import type {
   LHCIOptions,
   PerformanceThresholds,
 } from "@silverassist/performance-toolkit";
+```
+
+### Subpath Exports
+
+Import specific modules for smaller bundle size:
+
+```typescript
+// PageSpeed module only
+import { PageSpeedClient, analyzeUrl } from "@silverassist/performance-toolkit/pagespeed";
+
+// Lighthouse module only
+import { LighthouseRunner, createPSIRunner } from "@silverassist/performance-toolkit/lighthouse";
+
+// Types only (no runtime code)
+import type { PerformanceResult, CoreWebVitals } from "@silverassist/performance-toolkit/types";
 ```
 
 ## Development
