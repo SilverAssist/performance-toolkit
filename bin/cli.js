@@ -1083,6 +1083,7 @@ function parseArgs() {
     diagnostics: false,
     actionable: false,
     detectContext: false,
+    auditExports: false,
     json: false,
     ci: false,
     config: null,
@@ -1126,6 +1127,10 @@ function parseArgs() {
       case "--detect-context":
       case "--context":
         options.detectContext = true;
+        break;
+      case "--audit-exports":
+      case "--exports":
+        options.auditExports = true;
         break;
       case "--json":
       case "-j":
@@ -1183,6 +1188,9 @@ function showHelp() {
   );
   console.log("  --detect-context   Detect project technology stack");
   console.log(
+    "  --audit-exports    Analyze export patterns for tree-shaking optimization",
+  );
+  console.log(
     "  --json, -j         Output structured JSON (for programmatic use)",
   );
   console.log(
@@ -1199,6 +1207,8 @@ function showHelp() {
   console.log("  perf-check https://www.example.com --insights");
   console.log("  perf-check https://www.example.com --actionable");
   console.log("  perf-check https://www.example.com --diagnostics");
+  console.log("  perf-check --audit-exports                    # Analyze local project");
+  console.log("  perf-check --audit-exports --json > exports.json");
   console.log("  perf-check https://www.example.com --json > report.json");
   console.log(
     "  perf-check https://www.example.com --ci --output results.json\n",
@@ -1234,6 +1244,210 @@ function showHelp() {
 }
 
 /**
+ * Print export analysis results
+ * @param {object} analysis - Export analysis result
+ */
+function printExportAnalysis(analysis) {
+  const { summary, filesWithIssues, nextConfig, recommendations, framework } =
+    analysis;
+
+  // Header
+  log("\n📦 Module Export Analysis", "bright");
+  if (framework) {
+    log(`   Framework: ${framework.name} ${framework.version}\n`, "dim");
+  } else {
+    console.log("");
+  }
+
+  // Summary Statistics
+  log("📊 Summary", "cyan");
+  log("─────────────────────────────────────────────", "dim");
+
+  const stats = [
+    { label: "Total files analyzed", value: summary.totalFiles },
+    {
+      label: "Default exports",
+      value: summary.defaultExportFiles,
+      status:
+        summary.defaultExportFiles > summary.totalFiles * 0.3
+          ? "warning"
+          : "ok",
+    },
+    {
+      label: "Named exports",
+      value: summary.namedExportFiles,
+      status: "ok",
+    },
+    {
+      label: "Mixed exports",
+      value: summary.mixedExportFiles,
+      status: summary.mixedExportFiles > 0 ? "info" : "ok",
+    },
+    { label: "Barrel files", value: summary.barrelFiles },
+    {
+      label: "Problematic barrel files",
+      value: summary.problematicBarrelFiles,
+      status: summary.problematicBarrelFiles > 0 ? "warning" : "ok",
+    },
+  ];
+
+  stats.forEach((stat) => {
+    const icon = stat.status === "warning" ? "⚠️" : stat.status === "info" ? "ℹ️" : "✓";
+    const color =
+      stat.status === "warning"
+        ? "yellow"
+        : stat.status === "info"
+          ? "cyan"
+          : "green";
+    console.log(`   ${icon}  ${stat.label}: ${COLORS[color]}${stat.value}${COLORS.reset}`);
+  });
+
+  // Issues Summary
+  if (summary.totalIssues > 0) {
+    console.log("");
+    log("⚠️  Issues Found", "yellow");
+    log("─────────────────────────────────────────────", "dim");
+    console.log(
+      `   Warnings: ${COLORS.red}${summary.issuesBySeverity.warning}${COLORS.reset}`,
+    );
+    console.log(
+      `   Info: ${COLORS.cyan}${summary.issuesBySeverity.info}${COLORS.reset}`,
+    );
+  }
+
+  // Next.js Config Analysis
+  if (nextConfig && nextConfig.configFound) {
+    console.log("");
+    log("⚙️  Next.js Configuration", "cyan");
+    log("─────────────────────────────────────────────", "dim");
+
+    if (nextConfig.hasOptimizePackageImports) {
+      success("  ✓ optimizePackageImports is configured");
+      if (
+        nextConfig.optimizedPackages &&
+        nextConfig.optimizedPackages.length > 0
+      ) {
+        console.log(
+          `    Optimized packages: ${nextConfig.optimizedPackages.join(", ")}`,
+        );
+      }
+    } else {
+      warn("  ⚠ optimizePackageImports is NOT configured");
+      if (
+        nextConfig.suggestedPackages &&
+        nextConfig.suggestedPackages.length > 0
+      ) {
+        console.log(`    Suggested packages: ${nextConfig.suggestedPackages.join(", ")}`);
+      }
+    }
+  }
+
+  // Recommendations
+  if (recommendations && recommendations.length > 0) {
+    console.log("");
+    log("💡 Recommendations", "bright");
+    log("─────────────────────────────────────────────", "dim");
+
+    recommendations.forEach((rec, idx) => {
+      const priorityIcon =
+        rec.priority === "high" ? "🔴" : rec.priority === "medium" ? "🟡" : "🟢";
+      const priorityColor =
+        rec.priority === "high"
+          ? "red"
+          : rec.priority === "medium"
+            ? "yellow"
+            : "green";
+
+      console.log("");
+      console.log(
+        `   ${priorityIcon}  ${COLORS[priorityColor]}${rec.title}${COLORS.reset}`,
+      );
+      console.log(`       ${rec.description}`);
+
+      // Impact
+      if (rec.impact) {
+        const impacts = [];
+        if (rec.impact.bundleSize)
+          impacts.push(`Bundle size: ${rec.impact.bundleSize}`);
+        if (rec.impact.treeShaking)
+          impacts.push(`Tree-shaking: ${rec.impact.treeShaking}`);
+        if (impacts.length > 0) {
+          console.log(`       ${COLORS.dim}Impact: ${impacts.join(", ")}${COLORS.reset}`);
+        }
+      }
+
+      // Examples
+      if (rec.examples) {
+        console.log("");
+        console.log(
+          `       ${COLORS.dim}Before:${COLORS.reset}`,
+        );
+        rec.examples.before.split("\n").forEach((line) => {
+          console.log(`       ${COLORS.dim}${line}${COLORS.reset}`);
+        });
+        console.log("");
+        console.log(`       ${COLORS.dim}After:${COLORS.reset}`);
+        rec.examples.after.split("\n").forEach((line) => {
+          console.log(`       ${COLORS.green}${line}${COLORS.reset}`);
+        });
+      }
+
+      // Affected files count
+      if (rec.affectedFiles && rec.affectedFiles.length > 0) {
+        console.log("");
+        console.log(
+          `       ${COLORS.dim}Affects ${rec.affectedFiles.length} file(s)${COLORS.reset}`,
+        );
+      }
+    });
+  }
+
+  // Files with issues (if not too many)
+  if (filesWithIssues.length > 0 && filesWithIssues.length <= 10) {
+    console.log("");
+    log("📄 Files with Issues", "yellow");
+    log("─────────────────────────────────────────────", "dim");
+
+    filesWithIssues.forEach((file) => {
+      console.log("");
+      console.log(`   ${file.path}`);
+      file.issues.forEach((issue) => {
+        const icon = issue.severity === "warning" ? "⚠️" : "ℹ️";
+        const color = issue.severity === "warning" ? "yellow" : "cyan";
+        console.log(
+          `     ${icon}  ${COLORS[color]}${issue.message}${COLORS.reset}`,
+        );
+        if (issue.suggestion) {
+          console.log(
+            `         ${COLORS.dim}Suggestion: ${issue.suggestion}${COLORS.reset}`,
+          );
+        }
+      });
+    });
+  } else if (filesWithIssues.length > 10) {
+    console.log("");
+    log(`📄 ${filesWithIssues.length} Files with Issues`, "yellow");
+    log(
+      `   Run with --json to see full list or check individual files`,
+      "dim",
+    );
+  }
+
+  // Final message
+  if (summary.totalIssues === 0) {
+    console.log("");
+    success("✨ No export pattern issues found! Your code follows best practices.");
+  } else {
+    console.log("");
+    info(
+      `ℹ️  Found ${summary.totalIssues} issue(s). Address high-priority recommendations for best tree-shaking.`,
+    );
+  }
+
+  console.log("");
+}
+
+/**
  * Main CLI entry point
  */
 async function main() {
@@ -1244,7 +1458,7 @@ async function main() {
     process.exit(0);
   }
 
-  if (!options.url && !options.config) {
+  if (!options.url && !options.config && !options.auditExports) {
     error("No URL provided");
     showHelp();
     process.exit(1);
@@ -1273,6 +1487,29 @@ async function main() {
   }
 
   try {
+    // Handle --audit-exports flag (standalone, no URL required)
+    if (options.auditExports) {
+      if (!options.json) {
+        info("Analyzing export patterns in project...");
+        console.log("");
+      }
+
+      const { analyzeExports } = await import("../dist/index.js");
+
+      const exportAnalysis = await analyzeExports({
+        projectRoot: process.cwd(),
+        analyzeNextConfig: true,
+      });
+
+      if (options.json) {
+        console.log(JSON.stringify(exportAnalysis, null, 2));
+      } else {
+        printExportAnalysis(exportAnalysis);
+      }
+
+      process.exit(0);
+    }
+
     if (!options.json) {
       info(`Analyzing ${options.url} (${options.strategy})...`);
       console.log("");
