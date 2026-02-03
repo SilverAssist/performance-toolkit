@@ -71,6 +71,13 @@ export {
   analyzeBundle,
 } from "./bundle";
 
+// Export Pattern Analyzer exports
+export {
+  ExportAnalyzer,
+  createExportAnalyzer,
+  analyzeExports,
+} from "./analyzer";
+
 // Type exports
 export type {
   // Core types
@@ -136,6 +143,16 @@ export type {
   BundleSummary,
   ChunkInfo,
   DependencyInfo,
+  // Export Analyzer types
+  ExportType,
+  ReExportType,
+  FileExportInfo,
+  ExportIssue,
+  ExportAnalysisSummary,
+  NextConfigAnalysis,
+  ExportAnalysisResult,
+  ExportRecommendation,
+  ExportAnalyzerOptions,
 } from "./types";
 
 /**

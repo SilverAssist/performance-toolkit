@@ -97,3 +97,16 @@ export type {
   ChunkInfo,
   DependencyInfo,
 } from "./bundle";
+
+// Analyzer Domain - Export pattern analysis
+export type {
+  ExportType,
+  ReExportType,
+  FileExportInfo,
+  ExportIssue,
+  ExportAnalysisSummary,
+  NextConfigAnalysis,
+  ExportAnalysisResult,
+  ExportRecommendation,
+  ExportAnalyzerOptions,
+} from "./analyzer";
