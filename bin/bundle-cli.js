@@ -182,14 +182,14 @@ function displayResults(result) {
   if (!result.success) {
     error(`Analysis failed: ${result.error}`);
     console.log("");
-    
+
     if (result.error && result.error.includes("not installed")) {
       info("To install @next/bundle-analyzer, run:");
       log("  npm install --save-dev @next/bundle-analyzer", "dim");
       log("  # or", "dim");
       log("  perf-bundle --auto-install", "dim");
     }
-    
+
     return;
   }
 
@@ -198,51 +198,64 @@ function displayResults(result) {
 
   // Project info
   log(`Project: ${COLORS.bright}${result.projectPath}${COLORS.reset}`);
-  
+
   if (result.installedAnalyzer) {
     info("@next/bundle-analyzer was installed automatically");
   }
-  
+
   console.log("");
 
   // Reports
   if (result.reports && Object.keys(result.reports).length > 0) {
     printSectionHeader("Generated Reports", "📄");
-    
+
     if (result.reports.client) {
-      log(`  Client Bundle: ${COLORS.cyan}${result.reports.client}${COLORS.reset}`);
+      log(
+        `  Client Bundle: ${COLORS.cyan}${result.reports.client}${COLORS.reset}`,
+      );
     }
     if (result.reports.server) {
-      log(`  Server Bundle: ${COLORS.cyan}${result.reports.server}${COLORS.reset}`);
+      log(
+        `  Server Bundle: ${COLORS.cyan}${result.reports.server}${COLORS.reset}`,
+      );
     }
     if (result.reports.edge) {
-      log(`  Edge Runtime:  ${COLORS.cyan}${result.reports.edge}${COLORS.reset}`);
+      log(
+        `  Edge Runtime:  ${COLORS.cyan}${result.reports.edge}${COLORS.reset}`,
+      );
     }
-    
+
     console.log("");
   }
 
   // Summary
   if (result.summary) {
     printSectionHeader("Summary & Recommendations", "💡");
-    
+
     if (result.summary.totalClientSize > 0) {
-      log(`  Total Client Bundle: ${COLORS.yellow}${formatBytes(result.summary.totalClientSize)}${COLORS.reset}`);
+      log(
+        `  Total Client Bundle: ${COLORS.yellow}${formatBytes(result.summary.totalClientSize)}${COLORS.reset}`,
+      );
     }
-    
+
     if (result.summary.totalServerSize) {
-      log(`  Total Server Bundle: ${COLORS.yellow}${formatBytes(result.summary.totalServerSize)}${COLORS.reset}`);
+      log(
+        `  Total Server Bundle: ${COLORS.yellow}${formatBytes(result.summary.totalServerSize)}${COLORS.reset}`,
+      );
     }
-    
+
     console.log("");
-    
-    if (result.summary.recommendations && result.summary.recommendations.length > 0) {
+
+    if (
+      result.summary.recommendations &&
+      result.summary.recommendations.length > 0
+    ) {
       log("  Recommendations:", "bright");
       result.summary.recommendations.forEach((rec, i) => {
         log(`    ${i + 1}. ${rec}`, "dim");
       });
     }
-    
+
     console.log("");
   }
 
@@ -253,7 +266,7 @@ function displayResults(result) {
   log("  3. Consider dynamic imports for heavy components", "dim");
   log("  4. Review third-party packages for lighter alternatives", "dim");
   console.log("");
-  
+
   if (result.reports && result.reports.client) {
     info("To open reports:");
     log(`  open ${result.reports.client}`, "dim");
@@ -312,7 +325,12 @@ async function main() {
     if (options.openBrowser && result.reports && result.reports.client) {
       info("Opening reports in browser...");
       const { exec } = await import("child_process");
-      const open = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
+      const open =
+        process.platform === "darwin"
+          ? "open"
+          : process.platform === "win32"
+            ? "start"
+            : "xdg-open";
       exec(`${open} ${result.reports.client}`);
     }
 

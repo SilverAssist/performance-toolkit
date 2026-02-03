@@ -158,7 +158,7 @@ export type {
 /**
  * Package version
  */
-export const VERSION = "0.2.1";
+export const VERSION = "0.3.0";
 
 /**
  * Supported SilverAssist projects

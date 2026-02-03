@@ -185,10 +185,7 @@ export class ExportAnalyzer {
     }
 
     const content = this.fs.readFileSync(filePath, "utf-8");
-    const relativePath = this.path.relative(
-      this.options.projectRoot,
-      filePath,
-    );
+    const relativePath = this.path.relative(this.options.projectRoot, filePath);
 
     const fileName = this.path.basename(filePath, this.path.extname(filePath));
     const isBarrelFile = fileName === "index";
@@ -280,9 +277,10 @@ export class ExportAnalyzer {
   /**
    * Analyzes re-export patterns in barrel files
    */
-  private analyzeReExports(
-    content: string,
-  ): { type: ReExportType; count: number } {
+  private analyzeReExports(content: string): {
+    type: ReExportType;
+    count: number;
+  } {
     const defaultAsNamedPattern =
       /export\s*\{\s*default\s+as\s+\w+\s*\}\s*from/g;
     // Named pattern should NOT match 'default as' patterns
@@ -340,9 +338,9 @@ export class ExportAnalyzer {
         type: "default-reexport",
         severity: "warning",
         message:
-          'Re-exporting default exports as named (export { default as Name }) is suboptimal for tree-shaking',
+          "Re-exporting default exports as named (export { default as Name }) is suboptimal for tree-shaking",
         suggestion:
-          'Change source files to use named exports, then re-export: "export { Name } from \'./file\'"',
+          "Change source files to use named exports, then re-export: \"export { Name } from './file'\"",
       });
     }
 

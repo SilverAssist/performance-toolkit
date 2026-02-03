@@ -181,7 +181,12 @@ function isOurSymlink(targetPath, packagePromptsPath) {
  * Get the path to the manifest file that tracks installed prompts
  */
 function getManifestPath(projectRoot) {
-  return path.resolve(projectRoot, ".github", "prompts", ".perf-prompts-manifest.json");
+  return path.resolve(
+    projectRoot,
+    ".github",
+    "prompts",
+    ".perf-prompts-manifest.json",
+  );
 }
 
 /**
@@ -228,7 +233,10 @@ function getInstallableItems(packagePromptsPath) {
   for (const item of items) {
     if (item.isDirectory()) {
       // Rename directories to avoid conflicts with user's files
-      const safeName = item.name === "_partials" ? "_partials-performance" : `${item.name}-performance`;
+      const safeName =
+        item.name === "_partials"
+          ? "_partials-performance"
+          : `${item.name}-performance`;
       directories.push({ original: item.name, target: safeName });
     } else if (item.name.endsWith(".prompt.md")) {
       promptFiles.push(item.name);
@@ -553,7 +561,9 @@ function uninstall(options = {}) {
   const manifest = readManifest(projectRoot);
 
   if (manifest.files.length > 0 || manifest.directories.length > 0) {
-    info(`Removing prompts installed on ${manifest.installedAt || "unknown date"}`);
+    info(
+      `Removing prompts installed on ${manifest.installedAt || "unknown date"}`,
+    );
 
     // Remove prompt files from manifest
     for (const file of manifest.files) {
@@ -590,14 +600,18 @@ function uninstall(options = {}) {
     }
   } else {
     // Fallback: No manifest found, try to detect and remove our files
-    warn("No manifest found, attempting to detect and remove performance-toolkit prompts");
+    warn(
+      "No manifest found, attempting to detect and remove performance-toolkit prompts",
+    );
 
     const context = detectInstallationContext();
-    const effectiveInstallPath = context.installedPath || path.resolve(__dirname, "..");
+    const effectiveInstallPath =
+      context.installedPath || path.resolve(__dirname, "..");
     const packagePromptsPath = getPackagePromptsPath(effectiveInstallPath);
 
     if (fs.existsSync(packagePromptsPath)) {
-      const { promptFiles, directories } = getInstallableItems(packagePromptsPath);
+      const { promptFiles, directories } =
+        getInstallableItems(packagePromptsPath);
 
       // Remove prompt files
       for (const file of promptFiles) {
@@ -778,7 +792,9 @@ function status() {
   }
 
   if (installedSymlinks.length === installedPrompts.length) {
-    success(`Prompts Status: INSTALLED (${installedPrompts.length} symlinked) ✓`);
+    success(
+      `Prompts Status: INSTALLED (${installedPrompts.length} symlinked) ✓`,
+    );
     info("Prompts will auto-update when the package is updated");
   } else if (installedCopies.length === installedPrompts.length) {
     warn(`Prompts Status: INSTALLED (${installedPrompts.length} copied)`);

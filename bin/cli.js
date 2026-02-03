@@ -1207,7 +1207,9 @@ function showHelp() {
   console.log("  perf-check https://www.example.com --insights");
   console.log("  perf-check https://www.example.com --actionable");
   console.log("  perf-check https://www.example.com --diagnostics");
-  console.log("  perf-check --audit-exports                    # Analyze local project");
+  console.log(
+    "  perf-check --audit-exports                    # Analyze local project",
+  );
   console.log("  perf-check --audit-exports --json > exports.json");
   console.log("  perf-check https://www.example.com --json > report.json");
   console.log(
@@ -1292,14 +1294,17 @@ function printExportAnalysis(analysis) {
   ];
 
   stats.forEach((stat) => {
-    const icon = stat.status === "warning" ? "⚠️" : stat.status === "info" ? "ℹ️" : "✓";
+    const icon =
+      stat.status === "warning" ? "⚠️" : stat.status === "info" ? "ℹ️" : "✓";
     const color =
       stat.status === "warning"
         ? "yellow"
         : stat.status === "info"
           ? "cyan"
           : "green";
-    console.log(`   ${icon}  ${stat.label}: ${COLORS[color]}${stat.value}${COLORS.reset}`);
+    console.log(
+      `   ${icon}  ${stat.label}: ${COLORS[color]}${stat.value}${COLORS.reset}`,
+    );
   });
 
   // Issues Summary
@@ -1337,7 +1342,9 @@ function printExportAnalysis(analysis) {
         nextConfig.suggestedPackages &&
         nextConfig.suggestedPackages.length > 0
       ) {
-        console.log(`    Suggested packages: ${nextConfig.suggestedPackages.join(", ")}`);
+        console.log(
+          `    Suggested packages: ${nextConfig.suggestedPackages.join(", ")}`,
+        );
       }
     }
   }
@@ -1350,7 +1357,11 @@ function printExportAnalysis(analysis) {
 
     recommendations.forEach((rec, idx) => {
       const priorityIcon =
-        rec.priority === "high" ? "🔴" : rec.priority === "medium" ? "🟡" : "🟢";
+        rec.priority === "high"
+          ? "🔴"
+          : rec.priority === "medium"
+            ? "🟡"
+            : "🟢";
       const priorityColor =
         rec.priority === "high"
           ? "red"
@@ -1372,16 +1383,16 @@ function printExportAnalysis(analysis) {
         if (rec.impact.treeShaking)
           impacts.push(`Tree-shaking: ${rec.impact.treeShaking}`);
         if (impacts.length > 0) {
-          console.log(`       ${COLORS.dim}Impact: ${impacts.join(", ")}${COLORS.reset}`);
+          console.log(
+            `       ${COLORS.dim}Impact: ${impacts.join(", ")}${COLORS.reset}`,
+          );
         }
       }
 
       // Examples
       if (rec.examples) {
         console.log("");
-        console.log(
-          `       ${COLORS.dim}Before:${COLORS.reset}`,
-        );
+        console.log(`       ${COLORS.dim}Before:${COLORS.reset}`);
         rec.examples.before.split("\n").forEach((line) => {
           console.log(`       ${COLORS.dim}${line}${COLORS.reset}`);
         });
@@ -1427,16 +1438,15 @@ function printExportAnalysis(analysis) {
   } else if (filesWithIssues.length > 10) {
     console.log("");
     log(`📄 ${filesWithIssues.length} Files with Issues`, "yellow");
-    log(
-      `   Run with --json to see full list or check individual files`,
-      "dim",
-    );
+    log(`   Run with --json to see full list or check individual files`, "dim");
   }
 
   // Final message
   if (summary.totalIssues === 0) {
     console.log("");
-    success("✨ No export pattern issues found! Your code follows best practices.");
+    success(
+      "✨ No export pattern issues found! Your code follows best practices.",
+    );
   } else {
     console.log("");
     info(
