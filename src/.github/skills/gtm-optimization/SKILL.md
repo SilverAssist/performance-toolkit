@@ -71,9 +71,9 @@ import dynamic from "next/dynamic";
  * (afterInteractive strategy internally).
  *
  * **Performance Impact:**
- * - Reduces initial HTML size and Time to First Byte (TTFB)
+ * - Reduces initial HTML size (no inline GTM script in server response)
  * - Component NOT included in server-rendered HTML
- * - Loads AFTER React hydration completes
+ * - Loads during/after React hydration begins on the client
  * - Prevents render-blocking JavaScript
  *
  * **Why Dynamic Import with ssr: false?**
@@ -140,6 +140,7 @@ export default function GoogleTagManager({ gtmId }: { gtmId: string }) {
 
 ```tsx
 // src/app/layout.tsx
+import type { ReactNode } from "react";
 import GoogleTagManager from "@/components/third-party/google-tag-manager";
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || "GTM-XXXXXX";
@@ -147,7 +148,7 @@ const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || "GTM-XXXXXX";
 export default function RootLayout({ 
   children 
 }: { 
-  children: React.ReactNode 
+  children: ReactNode 
 }) {
   return (
     <html lang="en">
@@ -203,18 +204,20 @@ Bundle Size: No reduction
 HTML Size: ~40KB (no inline script)
 Parse Time: ~80ms (optimized load)
 TBT Impact: ~50ms (after hydration)
-Bundle Size: Tree-shaken, only loads what's needed
+Bundle Size: Similar (GTM payload loads from Google's CDN, not bundled)
 ```
 
 **Typical Improvements** (compared to inline Script with lazyOnload strategy):
 - **TBT reduction**: 40-60% (depends on GTM tag complexity and existing page weight)
 - **FCP improvement**: 15-25% (varies by network conditions and device)
-- **Bundle size**: 10-15% smaller (depends on existing third-party script usage)
 - **Cleaner code**: Better maintainability (consistently achieved)
 
 > These percentages represent the improvement when migrating from the suboptimal
 > Script approach (inline strings with lazyOnload) to the dynamic import pattern
 > with @next/third-parties. Your actual results may be higher or lower.
+> 
+> Note: Bundle size improvements are minimal since GTM loads from Google's CDN.
+> The main benefits are TBT/FCP improvements and code maintainability.
 
 **Factors Affecting Results:**
 - Complexity of GTM container (number of tags, triggers, variables)
@@ -305,8 +308,10 @@ npm run build
 - [ ] Created wrapper component in `src/components/third-party/`
 - [ ] Using `dynamic()` with `ssr: false`
 - [ ] Importing from `@next/third-parties/google`
-- [ ] Added environment variable for GTM/GA ID
-- [ ] Verified GTM ID is correct format (GTM-XXXXXX or G-XXXXXXXXXX)
+- [ ] Added environment variable for GTM container ID (if using `GoogleTagManager`)
+- [ ] Added environment variable for GA4 measurement ID (if using `GoogleAnalytics`)
+- [ ] Verified GTM container ID is correct format (`GTM-XXXXXXX`) for `GoogleTagManager`
+- [ ] Verified GA4 measurement ID is correct format (`G-XXXXXXXXXX`) for `GoogleAnalytics` (if used)
 - [ ] Tested in development: GTM loads after hydration
 - [ ] Tested in production: No console errors
 - [ ] Verified analytics events are captured correctly
