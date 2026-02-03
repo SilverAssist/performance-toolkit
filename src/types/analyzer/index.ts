@@ -176,7 +176,7 @@ export interface ExportAnalyzerOptions {
   projectRoot?: string;
   /** Directories to scan (default: ["src", "app", "pages", "components", "lib"]) */
   includeDirs?: string[];
-  /** Directories to exclude (default: ["node_modules", "dist", "build", ".next"]) */
+  /** Directories to exclude (default: ["node_modules", "dist", "build", ".next", ".turbo", "coverage", "__tests__"]) */
   excludeDirs?: string[];
   /** File extensions to analyze (default: [".ts", ".tsx", ".js", ".jsx"]) */
   extensions?: string[];
