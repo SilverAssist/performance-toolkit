@@ -668,7 +668,12 @@ function uninstall(options = {}) {
   // Remove skills if requested
   if (skills) {
     const skillsDir = path.resolve(projectRoot, ".github", "skills");
-    const ourSkills = ["nextjs-performance", "web-performance-analysis", "gtm-optimization"];
+    const ourSkills = [
+      "nextjs-performance",
+      "web-performance-analysis",
+      "gtm-optimization",
+      "nextjs-tree-shaking",
+    ];
 
     for (const skillName of ourSkills) {
       const skillPath = path.join(skillsDir, skillName);
@@ -800,7 +805,12 @@ function status() {
   log("Skills Status:", "cyan");
 
   const skillsDir = path.resolve(projectRoot, ".github", "skills");
-  const ourSkills = ["nextjs-performance", "web-performance-analysis", "gtm-optimization"];
+  const ourSkills = [
+    "nextjs-performance",
+    "web-performance-analysis",
+    "gtm-optimization",
+    "nextjs-tree-shaking",
+  ];
   let hasSkills = false;
 
   for (const skillName of ourSkills) {
