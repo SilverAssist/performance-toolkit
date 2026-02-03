@@ -89,6 +89,26 @@
         "default": "./dist/analyzer/index.js"
       }
     },
+    "./context": {
+      "import": {
+        "types": "./dist/context/index.d.mts",
+        "default": "./dist/context/index.mjs"
+      },
+      "require": {
+        "types": "./dist/context/index.d.ts",
+        "default": "./dist/context/index.js"
+      }
+    },
+    "./report": {
+      "import": {
+        "types": "./dist/report/index.d.mts",
+        "default": "./dist/report/index.mjs"
+      },
+      "require": {
+        "types": "./dist/report/index.d.ts",
+        "default": "./dist/report/index.js"
+      }
+    },
     "./types": {
       "import": {
         "types": "./dist/types/index.d.mts",

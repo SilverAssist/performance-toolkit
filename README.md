@@ -306,6 +306,8 @@ Agent Skills are auto-loaded by GitHub Copilot based on context relevance (requi
 |-------|-------------|
 | `nextjs-performance` | Next.js App Router performance patterns |
 | `web-performance-analysis` | General web performance optimization |
+| `gtm-optimization` | Google Tag Manager/GA4 performance optimization |
+| `nextjs-tree-shaking` | Tree-shaking optimization with named exports |
 
 Skills are installed automatically with `npx perf-prompts install`.
 
@@ -610,6 +612,10 @@ import type {
   PerformanceThresholds,
   BundleAnalyzerOptions,
   BundleAnalysisResult,
+  ExportAnalyzerOptions,
+  ExportAnalysisResult,
+  ProjectContext,
+  ActionableReport,
 } from "@silverassist/performance-toolkit";
 ```
 
@@ -627,8 +633,17 @@ import { LighthouseRunner, createPSIRunner } from "@silverassist/performance-too
 // Bundle module only
 import { BundleAnalyzerRunner, analyzeBundle } from "@silverassist/performance-toolkit/bundle";
 
+// Export analyzer module only
+import { ExportAnalyzer, analyzeExports } from "@silverassist/performance-toolkit/analyzer";
+
+// Context detection module only
+import { ProjectContextDetector, detectProjectContext } from "@silverassist/performance-toolkit/context";
+
+// Report generation module only
+import { ActionableReportGenerator, generateActionableReport } from "@silverassist/performance-toolkit/report";
+
 // Types only (no runtime code)
-import type { PerformanceResult, CoreWebVitals } from "@silverassist/performance-toolkit/types";
+import type { PerformanceResult, CoreWebVitals, ExportAnalysisResult } from "@silverassist/performance-toolkit/types";
 ```
 
 ## Development

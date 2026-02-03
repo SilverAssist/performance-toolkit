@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Export Pattern Analyzer** ([#13](https://github.com/SilverAssist/performance-toolkit/issues/13)) - Analyze module exports for tree-shaking optimization
+  - `ExportAnalyzer` class for detecting suboptimal export patterns
+  - `analyzeExports()` convenience function for quick analysis
+  - `--audit-exports` CLI flag for command-line analysis
+  - Detects default exports, barrel files, namespace re-exports
+  - `next.config.js` analysis for `optimizePackageImports` configuration
+  - Actionable recommendations with code examples and estimated impact
+  - New subpath export: `@silverassist/performance-toolkit/analyzer`
+  - New Copilot skill: `nextjs-tree-shaking` for AI-assisted optimization
+  - New Copilot prompt: `audit-exports.prompt.md` for guided analysis
+
+- **Bundle Analyzer Integration** ([#9](https://github.com/SilverAssist/performance-toolkit/issues/9)) - Integration with `@next/bundle-analyzer`
+  - `BundleAnalyzerRunner` class with fluent builder pattern
+  - `createBundleAnalyzer()` factory function
+  - `analyzeBundle()` convenience function
+  - `perf-bundle` CLI command for standalone bundle analysis
+  - Chunk analysis with size tracking and dependency detection
+  - Support for both client and server bundle analysis
+  - New subpath export: `@silverassist/performance-toolkit/bundle`
+
+- **GTM/GA Optimization Skill** ([#11](https://github.com/SilverAssist/performance-toolkit/issues/11)) - Copilot skill for Google Tag Manager optimization
+  - New skill: `gtm-optimization` with validated dynamic import patterns
+  - Best practices for GTM/GA4 integration in Next.js
+  - Performance-focused loading strategies
+
+### Fixed
+
+- **ReDoS vulnerabilities** in export analyzer regex patterns
+  - Replaced vulnerable nested quantifiers with bounded character classes
+  - Uses `[^}]{1,1000}` pattern to prevent catastrophic backtracking
+
 ## [0.2.1] - 2026-02-01
 
 ### Added

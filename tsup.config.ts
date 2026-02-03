@@ -7,6 +7,8 @@ export default defineConfig({
     "lighthouse/index": "src/lighthouse/index.ts",
     "bundle/index": "src/bundle/index.ts",
     "analyzer/index": "src/analyzer/index.ts",
+    "context/index": "src/context/index.ts",
+    "report/index": "src/report/index.ts",
     "types/index": "src/types/index.ts",
   },
   format: ["cjs", "esm"],
