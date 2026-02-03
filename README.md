@@ -19,15 +19,19 @@ PageSpeed Insights and Lighthouse CI integration for performance monitoring acro
 - ✅ **CLI Tool** - Command-line interface for quick analysis
 - ✅ **Copilot Prompts & Skills** - Pre-built AI workflows for performance optimization
 - ✅ **TypeScript** - Full type definitions with subpath exports
-- ✅ **Multi-Project** - Support for FA, CC, AA, OSA
 
 ## Installation
 
 ```bash
 npm install @silverassist/performance-toolkit
-# or
+performance-toolkit
+```
+
+```bash
 yarn add @silverassist/performance-toolkit
-# or
+```
+
+```bash
 pnpm add @silverassist/performance-toolkit
 ```
 
@@ -163,6 +167,7 @@ Reports are created in `.next/analyze/` directory:
 - **edge.html**: Edge runtime bundles (if edge runtime is used)
 
 Each report shows:
+
 - Bundle size (parsed vs gzipped)
 - Dependency tree visualization
 - Package-by-package breakdown
@@ -214,13 +219,16 @@ if (result.success) {
 ### Troubleshooting
 
 **"Not a Next.js project" error**:
+
 - Ensure `package.json` contains `next` in dependencies
 
 **Build fails during analysis**:
+
 - Check that your Next.js project builds successfully without the analyzer
 - Verify all dependencies are installed (`npm install`)
 
 **No reports generated**:
+
 - Check `.next/analyze/` directory exists
 - Ensure build completed successfully
 
@@ -237,6 +245,7 @@ perf-check https://www.example.com --json > report.json
 ```
 
 The `--insights` flag shows:
+
 - **LCP Timing Breakdown**: TTFB, resource load delay, render delay
 - **Third-Party Impact**: Blocking time and transfer size per vendor
 - **Unused JavaScript**: Wasted bytes with first-party/third-party attribution
@@ -431,6 +440,7 @@ analysis.recommendations.forEach(rec => {
 ```
 
 **Analysis includes:**
+
 - Default vs named export detection
 - Barrel file pattern analysis (`index.ts` re-exports)
 - `next.config.js` `optimizePackageImports` configuration
