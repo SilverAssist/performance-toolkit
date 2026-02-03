@@ -14,17 +14,8 @@
 export interface BundleAnalyzerOptions {
   /** Path to Next.js project directory */
   projectPath?: string;
-  /** Whether to open the HTML report in browser */
-  openBrowser?: boolean;
   /** Whether to install @next/bundle-analyzer if missing */
   autoInstall?: boolean;
-  /** Custom analyzer configuration */
-  analyzerConfig?: {
-    analyzerMode?: "server" | "static" | "json" | "disabled";
-    analyzerPort?: number;
-    reportFilename?: string;
-    openAnalyzer?: boolean;
-  };
 }
 
 /**
@@ -51,6 +42,9 @@ export interface BundleAnalysisResult {
 
 /**
  * Bundle size summary
+ *
+ * Note: Current implementation provides placeholder recommendations.
+ * Actual bundle size parsing from webpack stats will be added in a future version.
  */
 export interface BundleSummary {
   /** Total client bundle size (parsed) */

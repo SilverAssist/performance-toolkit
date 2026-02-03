@@ -285,13 +285,23 @@ async function main() {
 
   try {
     // Dynamic import of the bundle analyzer
-    const { analyzeBundle } = await import("../dist/index.js");
+    const { BundleAnalyzerRunner } = await import("../dist/index.js");
 
-    const result = await analyzeBundle({
+    const runner = new BundleAnalyzerRunner({
       projectPath: options.projectPath,
       autoInstall: options.autoInstall,
-      openBrowser: options.openBrowser,
     });
+
+    // Set up logging callbacks
+    runner.setLogCallback((message) => {
+      console.log(message);
+    });
+
+    runner.setErrorCallback((message) => {
+      console.error(message);
+    });
+
+    const result = await runner.analyze();
 
     displayResults(result);
 

@@ -20,12 +20,16 @@ import type {
 
 const execAsync = promisify(exec);
 
+type PackageManager = "npm" | "yarn" | "pnpm";
+
 /**
  * Runner for Next.js bundle analysis using @next/bundle-analyzer
  */
 export class BundleAnalyzerRunner {
   private projectPath: string;
   private options: BundleAnalyzerOptions;
+  private onLog?: (message: string) => void;
+  private onError?: (message: string) => void;
 
   constructor(options: BundleAnalyzerOptions = {}) {
     this.projectPath = options.projectPath || process.cwd();
@@ -33,9 +37,56 @@ export class BundleAnalyzerRunner {
   }
 
   /**
+   * Set logging callback for CLI usage
+   */
+  setLogCallback(onLog: (message: string) => void): void {
+    this.onLog = onLog;
+  }
+
+  /**
+   * Set error callback for CLI usage
+   */
+  setErrorCallback(onError: (message: string) => void): void {
+    this.onError = onError;
+  }
+
+  /**
+   * Log message (used by CLI layer)
+   */
+  private log(message: string): void {
+    if (this.onLog) {
+      this.onLog(message);
+    }
+  }
+
+  /**
+   * Log error (used by CLI layer)
+   */
+  private logError(message: string): void {
+    if (this.onError) {
+      this.onError(message);
+    }
+  }
+
+  /**
+   * Detect the package manager used in the project
+   */
+  private detectPackageManager(): PackageManager {
+    if (fs.existsSync(path.join(this.projectPath, "yarn.lock"))) {
+      return "yarn";
+    }
+
+    if (fs.existsSync(path.join(this.projectPath, "pnpm-lock.yaml"))) {
+      return "pnpm";
+    }
+
+    return "npm";
+  }
+
+  /**
    * Check if @next/bundle-analyzer is installed
    */
-  private async isAnalyzerInstalled(): Promise<boolean> {
+  private isAnalyzerInstalled(): boolean {
     const packageJsonPath = path.join(this.projectPath, "package.json");
     
     if (!fs.existsSync(packageJsonPath)) {
@@ -57,7 +108,7 @@ export class BundleAnalyzerRunner {
   /**
    * Check if this is a Next.js project
    */
-  private async isNextJsProject(): Promise<boolean> {
+  private isNextJsProject(): boolean {
     const packageJsonPath = path.join(this.projectPath, "package.json");
     
     if (!fs.existsSync(packageJsonPath)) {
@@ -81,22 +132,31 @@ export class BundleAnalyzerRunner {
    */
   private async installAnalyzer(): Promise<boolean> {
     try {
-      console.log("📦 Installing @next/bundle-analyzer...");
+      this.log("📦 Installing @next/bundle-analyzer...");
       
-      // Detect package manager
-      let installCmd = "npm install --save-dev @next/bundle-analyzer";
-      
-      if (fs.existsSync(path.join(this.projectPath, "yarn.lock"))) {
-        installCmd = "yarn add --dev @next/bundle-analyzer";
-      } else if (fs.existsSync(path.join(this.projectPath, "pnpm-lock.yaml"))) {
-        installCmd = "pnpm add --save-dev @next/bundle-analyzer";
-      }
+      const packageManager = this.detectPackageManager();
+      const installCmd =
+        packageManager === "yarn"
+          ? "yarn add --dev @next/bundle-analyzer"
+          : packageManager === "pnpm"
+          ? "pnpm add --save-dev @next/bundle-analyzer"
+          : "npm install --save-dev @next/bundle-analyzer";
 
       await execAsync(installCmd, { cwd: this.projectPath });
-      console.log("✅ @next/bundle-analyzer installed successfully");
+      this.log("✅ @next/bundle-analyzer installed successfully");
       return true;
     } catch (error) {
-      console.error("❌ Failed to install @next/bundle-analyzer:", error);
+      const err = error as { message?: string; stderr?: string; stdout?: string };
+      this.logError("❌ Failed to install @next/bundle-analyzer");
+      
+      if (err?.message) {
+        this.logError(`Error: ${err.message}`);
+      }
+      
+      if (err?.stderr) {
+        this.logError(`stderr: ${err.stderr}`);
+      }
+      
       return false;
     }
   }
@@ -115,6 +175,15 @@ export class BundleAnalyzerRunner {
       const configPath = path.join(this.projectPath, configFile);
       if (fs.existsSync(configPath)) {
         const backupPath = configPath + ".backup";
+        
+        // Check if backup already exists
+        if (fs.existsSync(backupPath)) {
+          throw new Error(
+            `Backup file already exists for ${configFile} at ${backupPath}. ` +
+              "Please restore or remove this backup file before running the bundle analyzer again."
+          );
+        }
+        
         fs.copyFileSync(configPath, backupPath);
         return configFile;
       }
@@ -130,9 +199,14 @@ export class BundleAnalyzerRunner {
     const configPath = path.join(this.projectPath, configFile);
     let content = fs.readFileSync(configPath, "utf-8");
 
-    // Check if already configured
-    if (content.includes("@next/bundle-analyzer")) {
-      console.log("ℹ️  Bundle analyzer already configured");
+    // Check if already configured by verifying both import/require and wrapper usage
+    const hasAnalyzerImportOrRequire =
+      /import\s+[^'"]*['"]@next\/bundle-analyzer['"]/.test(content) ||
+      /\brequire\(\s*['"]@next\/bundle-analyzer['"]\s*\)/.test(content);
+    const hasWithBundleAnalyzerWrapper = /withBundleAnalyzer\s*\(/.test(content);
+
+    if (hasAnalyzerImportOrRequire && hasWithBundleAnalyzerWrapper) {
+      this.log("ℹ️  Bundle analyzer already configured");
       return;
     }
 
@@ -147,21 +221,21 @@ export class BundleAnalyzerRunner {
     // Insert at the beginning
     content = analyzerImport + analyzerWrapper + content;
 
-    // Wrap the export
+    // Wrap the export - improved regex to handle more patterns
     if (configFile.endsWith(".mjs") || configFile.endsWith(".ts")) {
       content = content.replace(
-        /export default\s+(\w+)/,
+        /export\s+default\s+([^;]+);?/,
         "export default withBundleAnalyzer($1)"
       );
     } else {
       content = content.replace(
-        /module\.exports\s*=\s*(\w+)/,
+        /module\.exports\s*=\s*([^;]+);?/,
         "module.exports = withBundleAnalyzer($1)"
       );
     }
 
     fs.writeFileSync(configPath, content);
-    console.log("✅ Injected bundle analyzer configuration");
+    this.log("✅ Injected bundle analyzer configuration");
   }
 
   /**
@@ -174,7 +248,7 @@ export class BundleAnalyzerRunner {
     if (fs.existsSync(backupPath)) {
       fs.copyFileSync(backupPath, configPath);
       fs.unlinkSync(backupPath);
-      console.log("✅ Restored original configuration");
+      this.log("✅ Restored original configuration");
     }
   }
 
@@ -183,30 +257,39 @@ export class BundleAnalyzerRunner {
    */
   private async runBuild(): Promise<boolean> {
     try {
-      console.log("🔨 Building project with bundle analysis...");
+      this.log("🔨 Building project with bundle analysis...");
       
-      // Detect package manager
-      let buildCmd = "npm run build";
-      
-      if (fs.existsSync(path.join(this.projectPath, "yarn.lock"))) {
-        buildCmd = "yarn build";
-      } else if (fs.existsSync(path.join(this.projectPath, "pnpm-lock.yaml"))) {
-        buildCmd = "pnpm build";
-      }
+      const packageManager = this.detectPackageManager();
+      const buildCmd =
+        packageManager === "yarn"
+          ? "yarn build"
+          : packageManager === "pnpm"
+          ? "pnpm build"
+          : "npm run build";
       
       const { stderr } = await execAsync(buildCmd, {
         cwd: this.projectPath,
         env: { ...process.env, ANALYZE: "true" },
       });
 
-      if (stderr && !stderr.includes("warn")) {
-        console.error("Build warnings/errors:", stderr);
+      if (stderr) {
+        this.logError(`Build stderr output: ${stderr}`);
       }
 
-      console.log("✅ Build completed successfully");
+      this.log("✅ Build completed successfully");
       return true;
     } catch (error) {
-      console.error("❌ Build failed:", error);
+      const err = error as { message?: string; stderr?: string; stdout?: string };
+      this.logError("❌ Build failed");
+      
+      if (err?.message) {
+        this.logError(`Error: ${err.message}`);
+      }
+      
+      if (err?.stderr) {
+        this.logError(`stderr: ${err.stderr}`);
+      }
+      
       return false;
     }
   }
@@ -264,7 +347,7 @@ export class BundleAnalyzerRunner {
 
     try {
       // Check if this is a Next.js project
-      if (!(await this.isNextJsProject())) {
+      if (!this.isNextJsProject()) {
         return {
           success: false,
           projectPath: this.projectPath,
@@ -274,7 +357,7 @@ export class BundleAnalyzerRunner {
       }
 
       // Check and install analyzer if needed
-      const analyzerInstalled = await this.isAnalyzerInstalled();
+      const analyzerInstalled = this.isAnalyzerInstalled();
       if (!analyzerInstalled) {
         if (this.options.autoInstall) {
           const installed = await this.installAnalyzer();
@@ -341,9 +424,18 @@ export class BundleAnalyzerRunner {
         error: error instanceof Error ? error.message : "Unknown error",
       };
     } finally {
-      // Always restore original config
+      // Always restore original config, but don't let restore errors mask the original one
       if (configFile) {
-        this.restoreNextConfig(configFile);
+        try {
+          this.restoreNextConfig(configFile);
+        } catch (restoreError) {
+          // Log restore error without throwing to preserve any original error
+          this.logError(
+            `Failed to restore original Next.js configuration: ${
+              restoreError instanceof Error ? restoreError.message : restoreError
+            }`
+          );
+        }
       }
     }
   }

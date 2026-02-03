@@ -25,7 +25,7 @@ describe("BundleAnalyzerRunner", () => {
   });
 
   describe("isNextJsProject", () => {
-    it("should detect Next.js project from package.json", async () => {
+    it("should detect Next.js project from package.json", () => {
       const testProjectPath = "/test/project";
       
       (fs.existsSync as jest.Mock).mockReturnValue(true);
@@ -41,11 +41,11 @@ describe("BundleAnalyzerRunner", () => {
         projectPath: testProjectPath,
       });
 
-      const result = await runner["isNextJsProject"]();
+      const result = runner["isNextJsProject"]();
       expect(result).toBe(true);
     });
 
-    it("should return false for non-Next.js project", async () => {
+    it("should return false for non-Next.js project", () => {
       const testProjectPath = "/test/project";
       
       (fs.existsSync as jest.Mock).mockReturnValue(true);
@@ -61,13 +61,13 @@ describe("BundleAnalyzerRunner", () => {
         projectPath: testProjectPath,
       });
 
-      const result = await runner["isNextJsProject"]();
+      const result = runner["isNextJsProject"]();
       expect(result).toBe(false);
     });
   });
 
   describe("isAnalyzerInstalled", () => {
-    it("should detect installed @next/bundle-analyzer", async () => {
+    it("should detect installed @next/bundle-analyzer", () => {
       const testProjectPath = "/test/project";
       
       (fs.existsSync as jest.Mock).mockReturnValue(true);
@@ -83,11 +83,11 @@ describe("BundleAnalyzerRunner", () => {
         projectPath: testProjectPath,
       });
 
-      const result = await runner["isAnalyzerInstalled"]();
+      const result = runner["isAnalyzerInstalled"]();
       expect(result).toBe(true);
     });
 
-    it("should return false when analyzer is not installed", async () => {
+    it("should return false when analyzer is not installed", () => {
       const testProjectPath = "/test/project";
       
       (fs.existsSync as jest.Mock).mockReturnValue(true);
@@ -103,7 +103,7 @@ describe("BundleAnalyzerRunner", () => {
         projectPath: testProjectPath,
       });
 
-      const result = await runner["isAnalyzerInstalled"]();
+      const result = runner["isAnalyzerInstalled"]();
       expect(result).toBe(false);
     });
   });

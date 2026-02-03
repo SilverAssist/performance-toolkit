@@ -186,7 +186,6 @@ import { analyzeBundle } from "@silverassist/performance-toolkit";
 const result = await analyzeBundle({
   projectPath: "/path/to/nextjs-project",
   autoInstall: true,
-  openBrowser: false,
 });
 
 if (result.success) {
@@ -196,6 +195,8 @@ if (result.success) {
   console.error("Error:", result.error);
 }
 ```
+
+**Note:** The `openBrowser` option is only available via the CLI. For programmatic usage, handle report opening in your own code using the returned `result.reports` paths.
 
 ### Best Practices
 
@@ -420,7 +421,6 @@ import { analyzeBundle } from "@silverassist/performance-toolkit";
 const result = await analyzeBundle({
   projectPath: "/path/to/nextjs-project",
   autoInstall: true,
-  openBrowser: false,
 });
 
 if (result.success) {
@@ -433,7 +433,7 @@ if (result.success) {
 
 ### `BundleAnalyzerRunner`
 
-Full control over bundle analysis:
+Full control over bundle analysis with logging callbacks:
 
 ```typescript
 import { BundleAnalyzerRunner } from "@silverassist/performance-toolkit";
@@ -441,8 +441,11 @@ import { BundleAnalyzerRunner } from "@silverassist/performance-toolkit";
 const runner = new BundleAnalyzerRunner({
   projectPath: process.cwd(),
   autoInstall: true,
-  openBrowser: false,
 });
+
+// Set up logging (optional)
+runner.setLogCallback((msg) => console.log(msg));
+runner.setErrorCallback((msg) => console.error(msg));
 
 const result = await runner.analyze();
 ```
