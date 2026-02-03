@@ -5,6 +5,7 @@ export default defineConfig({
     index: "src/index.ts",
     "pagespeed/index": "src/pagespeed/index.ts",
     "lighthouse/index": "src/lighthouse/index.ts",
+    "bundle/index": "src/bundle/index.ts",
     "types/index": "src/types/index.ts",
   },
   format: ["cjs", "esm"],

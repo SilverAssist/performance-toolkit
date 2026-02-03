@@ -88,3 +88,12 @@ export type {
   ProjectConfig,
   ToolkitConfig,
 } from "./config";
+
+// Bundle Domain - Bundle analysis
+export type {
+  BundleAnalyzerOptions,
+  BundleAnalysisResult,
+  BundleSummary,
+  ChunkInfo,
+  DependencyInfo,
+} from "./bundle";
