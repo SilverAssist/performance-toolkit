@@ -17,7 +17,6 @@
  */
 
 import fs from "fs";
-import path from "path";
 
 // ===========================================================================
 // ANSI color codes
