@@ -185,7 +185,16 @@ export class BundleAnalyzerRunner {
     try {
       console.log("🔨 Building project with bundle analysis...");
       
-      const { stderr } = await execAsync("ANALYZE=true npm run build", {
+      // Detect package manager
+      let buildCmd = "npm run build";
+      
+      if (fs.existsSync(path.join(this.projectPath, "yarn.lock"))) {
+        buildCmd = "yarn build";
+      } else if (fs.existsSync(path.join(this.projectPath, "pnpm-lock.yaml"))) {
+        buildCmd = "pnpm build";
+      }
+      
+      const { stderr } = await execAsync(buildCmd, {
         cwd: this.projectPath,
         env: { ...process.env, ANALYZE: "true" },
       });
