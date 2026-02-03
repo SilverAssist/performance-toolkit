@@ -263,8 +263,8 @@ export class ExportAnalyzer {
     const patterns = [
       // export function/const/class Name
       /export\s+(function|const|let|var|class|interface|type|enum)\s+\w+/g,
-      // export { Name1, Name2 }
-      /export\s*\{\s*[\w\s,]+\s*\}/g,
+      // export { Name1, Name2 } (but NOT re-exports with 'from')
+      /export\s*\{\s*[\w\s,]+\s*\}(?!\s*from)/g,
     ];
 
     let count = 0;
@@ -284,7 +284,8 @@ export class ExportAnalyzer {
   ): { type: ReExportType; count: number } {
     const defaultAsNamedPattern =
       /export\s*\{\s*default\s+as\s+\w+\s*\}\s*from/g;
-    const namedPattern = /export\s*\{\s*[\w\s,]+\s*\}\s*from/g;
+    // Named pattern should NOT match 'default as' patterns (using negative lookahead)
+    const namedPattern = /export\s*\{\s*(?!.*default\s+as)[\w\s,]+\s*\}\s*from/g;
     const namespacePattern = /export\s*\*\s*from/g;
 
     const defaultAsNamed = content.match(defaultAsNamedPattern)?.length || 0;

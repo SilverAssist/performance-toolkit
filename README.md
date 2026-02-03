@@ -15,6 +15,7 @@ PageSpeed Insights and Lighthouse CI integration for performance monitoring acro
 - ✅ **Opportunities & Diagnostics** - Performance improvement suggestions
 - ✅ **Actionable Reports** - Framework-aware optimization recommendations
 - ✅ **Project Context Detection** - Auto-detect Next.js, React, Vue, etc.
+- ✅ **Export Pattern Analyzer** - Optimize tree-shaking with named exports
 - ✅ **CLI Tool** - Command-line interface for quick analysis
 - ✅ **Copilot Prompts & Skills** - Pre-built AI workflows for performance optimization
 - ✅ **TypeScript** - Full type definitions with subpath exports
@@ -89,6 +90,9 @@ perf-check https://www.example.com
 # Desktop strategy with verbose output
 perf-check https://www.example.com --desktop --verbose
 
+# Audit export patterns for tree-shaking
+perf-check --audit-exports
+
 # CI mode (exit code 1 on failures)
 perf-check https://www.example.com --ci --output results.json
 ```
@@ -104,6 +108,7 @@ perf-check https://www.example.com --ci --output results.json
 | `--diagnostics` | | Show diagnostics table (PageSpeed format) |
 | `--actionable` | `-a` | Generate actionable report with key opportunities |
 | `--detect-context` | | Detect project technology stack |
+| `--audit-exports` | | Analyze export patterns for tree-shaking |
 | `--json` | `-j` | Output structured JSON (for programmatic use) |
 | `--ci` | | CI mode (exit with error on violations) |
 | `--output` | `-o` | Output results to JSON file |
@@ -394,6 +399,41 @@ console.log(context.framework); // { name: "Next.js", version: "14.2.0" }
 console.log(context.isSSR);     // true
 console.log(context.hasAppDir); // true
 ```
+
+### `analyzeExports(options?)`
+
+Analyze module export patterns for tree-shaking optimization:
+
+```typescript
+import { analyzeExports } from "@silverassist/performance-toolkit";
+
+const analysis = await analyzeExports({
+  projectRoot: process.cwd(),
+  includeDirs: ["src", "app", "components"],
+  analyzeNextConfig: true,
+});
+
+console.log(analysis.summary);
+// {
+//   totalFiles: 127,
+//   defaultExportFiles: 15,
+//   namedExportFiles: 112,
+//   problematicBarrelFiles: 3
+// }
+
+// Get recommendations
+analysis.recommendations.forEach(rec => {
+  console.log(`${rec.priority}: ${rec.title}`);
+  console.log(`Impact: ${rec.impact.bundleSize}`);
+});
+```
+
+**Analysis includes:**
+- Default vs named export detection
+- Barrel file pattern analysis (`index.ts` re-exports)
+- `next.config.js` `optimizePackageImports` configuration
+- Actionable recommendations with code examples
+- Estimated bundle size impact
 
 ### `generateActionableReport(result, context?)`
 
