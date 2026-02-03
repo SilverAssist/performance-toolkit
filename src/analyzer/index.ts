@@ -264,8 +264,8 @@ export class ExportAnalyzer {
       // export function/const/class Name
       /export\s+(function|const|let|var|class|interface|type|enum)\s+\w+/g,
       // export { Name1, Name2 } (but NOT re-exports with 'from')
-      // Use possessive quantifiers to prevent backtracking
-      /export\s*\{\s*(?:[\w,]|\s(?!\s*\}))+\s*\}(?!\s*from)/g,
+      // Use simple character class with bounded length to prevent ReDoS
+      /export\s*\{[^}]{1,1000}\}(?!\s*from)/g,
     ];
 
     let count = 0;
@@ -286,15 +286,15 @@ export class ExportAnalyzer {
     const defaultAsNamedPattern =
       /export\s*\{\s*default\s+as\s+\w+\s*\}\s*from/g;
     // Named pattern should NOT match 'default as' patterns
-    // Using (?![\s\S]*default\s+as) negative lookahead to check the entire capture
-    // group, including across newlines. Use atomic grouping to prevent backtracking.
-    // Note: (?!default\s+as) alone would fail because the character class can still
-    // match "default as Button" since \w matches 'default', \s matches space, etc.
-    const namedPattern = /export\s*\{\s*(?![\s\S]*default\s+as)(?:[\w,]|\s(?!\s*\}))+\s*\}\s*from/g;
+    // Using bounded character class [^}]{1,1000} to prevent ReDoS
+    // Then filter out 'default as' matches programmatically
+    const namedPattern = /export\s*\{[^}]{1,1000}\}\s*from/g;
     const namespacePattern = /export\s*\*\s*from/g;
 
     const defaultAsNamed = content.match(defaultAsNamedPattern)?.length || 0;
-    const named = content.match(namedPattern)?.length || 0;
+    // Filter out 'default as' patterns from named matches
+    const namedMatches = content.match(namedPattern) || [];
+    const named = namedMatches.filter(m => !m.includes('default as')).length;
     const namespace = content.match(namespacePattern)?.length || 0;
 
     let type: ReExportType = "named";
