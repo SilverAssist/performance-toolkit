@@ -64,6 +64,13 @@ export {
   generateActionableReport,
 } from "./report";
 
+// Bundle Analysis exports
+export {
+  BundleAnalyzerRunner,
+  createBundleAnalyzer,
+  analyzeBundle,
+} from "./bundle";
+
 // Type exports
 export type {
   // Core types
@@ -123,6 +130,12 @@ export type {
   FrameworkSpecificNote,
   NextStep,
   ActionableReport,
+  // Bundle types
+  BundleAnalyzerOptions,
+  BundleAnalysisResult,
+  BundleSummary,
+  ChunkInfo,
+  DependencyInfo,
 } from "./types";
 
 /**
