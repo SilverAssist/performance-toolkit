@@ -284,7 +284,10 @@ export class ExportAnalyzer {
   ): { type: ReExportType; count: number } {
     const defaultAsNamedPattern =
       /export\s*\{\s*default\s+as\s+\w+\s*\}\s*from/g;
-    // Named pattern should NOT match 'default as' patterns (using negative lookahead)
+    // Named pattern should NOT match 'default as' patterns
+    // Using (?!.*default\s+as) negative lookahead to check the entire capture group
+    // Note: (?!default\s+as) alone would fail because [\w\s,]+ can still match
+    // "default as Button" since \w matches 'default', \s matches space, etc.
     const namedPattern = /export\s*\{\s*(?!.*default\s+as)[\w\s,]+\s*\}\s*from/g;
     const namespacePattern = /export\s*\*\s*from/g;
 
