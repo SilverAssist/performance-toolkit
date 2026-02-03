@@ -223,6 +223,21 @@ describe("BundleAnalyzerRunner", () => {
       
       expect(result).toBeNull();
     });
+
+    it("should throw error when backup already exists", () => {
+      const testProjectPath = "/test/project";
+      
+      (fs.existsSync as jest.Mock).mockImplementation((p) => {
+        // Both config and backup exist
+        return p.toString().endsWith("next.config.js") || p.toString().endsWith(".backup");
+      });
+
+      const runner = new BundleAnalyzerRunner({
+        projectPath: testProjectPath,
+      });
+
+      expect(() => runner["backupNextConfig"]()).toThrow("Backup file already exists");
+    });
   });
 
   describe("findReportFiles", () => {

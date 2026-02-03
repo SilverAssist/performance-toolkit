@@ -221,15 +221,15 @@ export class BundleAnalyzerRunner {
     // Insert at the beginning
     content = analyzerImport + analyzerWrapper + content;
 
-    // Wrap the export - improved regex to handle more patterns
+    // Wrap the export - improved regex to handle multi-line statements
     if (configFile.endsWith(".mjs") || configFile.endsWith(".ts")) {
       content = content.replace(
-        /export\s+default\s+([^;]+);?/,
+        /export\s+default\s+([\s\S]+?)(?=\n\s*$|$)/m,
         "export default withBundleAnalyzer($1)"
       );
     } else {
       content = content.replace(
-        /module\.exports\s*=\s*([^;]+);?/,
+        /module\.exports\s*=\s*([\s\S]+?)(?=\n\s*$|$)/m,
         "module.exports = withBundleAnalyzer($1)"
       );
     }
@@ -267,14 +267,10 @@ export class BundleAnalyzerRunner {
           ? "pnpm build"
           : "npm run build";
       
-      const { stderr } = await execAsync(buildCmd, {
+      await execAsync(buildCmd, {
         cwd: this.projectPath,
         env: { ...process.env, ANALYZE: "true" },
       });
-
-      if (stderr) {
-        this.logError(`Build stderr output: ${stderr}`);
-      }
 
       this.log("✅ Build completed successfully");
       return true;
