@@ -75,24 +75,24 @@ npm run lint           # ESLint
 
 ## Prompts & Skills
 
-**Prompts** (`src/.github/prompts/*.prompt.md`):
+**Prompts** (`src/templates/prompts/*.prompt.md`):
 - Manually invoked by users with `@workspace /performance/[name]`
 - Use `_partials/` for shared content via markdown includes
 - Target path when installed: `.github/prompts/performance/`
 
-**Skills** (`src/.github/skills/*/SKILL.md`):
+**Skills** (`src/templates/skills/*/SKILL.md`):
 - Auto-loaded by Copilot based on context relevance
 - Require `chat.useAgentSkills` setting in VS Code
 - Portable: work in VS Code, Copilot CLI, and Copilot coding agent
 - Target path when installed: `.github/skills/[skill-name]/`
 
 **Adding new prompts:**
-1. Create `[name].prompt.md` in `src/.github/prompts/`
+1. Create `[name].prompt.md` in `src/templates/prompts/`
 2. Use YAML frontmatter for metadata (optional)
 3. Reference partials with `[label](path/to/partial.md)`
 
 **Adding new skills:**
-1. Create directory `src/.github/skills/[skill-name]/`
+1. Create directory `src/templates/skills/[skill-name]/`
 2. Add `SKILL.md` with required YAML frontmatter (`name`, `description`)
 3. Update `ourSkills` array in `bin/install-prompts.js` for uninstall
 

@@ -1,17 +1,26 @@
 ---
 agent: agent
-description: Next.js App Router specific performance optimizations based on real-world learnings
+description: Next.js 15 App Router specific performance optimizations based on real-world learnings
 ---
 
-# Next.js Performance Optimization
+# Next.js 15 Performance Optimization
 
-Optimize performance for Next.js App Router applications with streaming-aware patterns.
+Optimize performance for Next.js 15 App Router applications with streaming-aware patterns, PPR (Partial Prerendering), and Next.js 15 caching strategies.
 
 ## Prerequisites
 
 - Run `analyze-performance` first to identify issues
 - Access to the codebase
 - Reference: `.github/prompts/_partials-performance/performance-patterns.md`
+
+## Next.js 15 Key Changes
+
+> ⚠️ **Breaking Changes in Next.js 15:**
+> - `fetch()` is NOT cached by default (opt-in with `cache: 'force-cache'`)
+> - Partial Prerendering (PPR) available as experimental feature
+> - `use cache` directive for granular caching control
+> - Streaming metadata for improved perceived performance
+> - React 19 features including `use()` hook
 
 ## Critical Learnings
 
@@ -31,6 +40,105 @@ In App Router, pages stream in chunks:
 **Implication**: Any `preload()` or `priority` prop in child components arrives AFTER `</head>` closes, placing preload tags in `<body>` where they're less effective.
 
 ## Steps
+
+### 0. Configure Next.js 15 Caching
+
+**Step: Review and configure fetch caching**
+
+```typescript
+// ❌ NOT CACHED in Next.js 15 (breaking change!)
+const data = await fetch('https://api.example.com/data');
+
+// ✅ CACHED - opt-in with force-cache
+const data = await fetch('https://api.example.com/data', {
+  cache: 'force-cache'
+});
+
+// ✅ TIME-BASED REVALIDATION
+const data = await fetch('https://api.example.com/data', {
+  next: { revalidate: 3600 } // Revalidate every hour
+});
+
+// ✅ TAG-BASED REVALIDATION
+const data = await fetch('https://api.example.com/data', {
+  next: { tags: ['products'] }
+});
+// Then revalidate with: revalidateTag('products')
+```
+
+**Step: Configure Route Handler caching**
+
+```typescript
+// app/api/data/route.ts
+// ❌ NOT CACHED by default
+export async function GET() {
+  const data = await fetch('https://...');
+  return Response.json(data);
+}
+
+// ✅ CACHED with config
+export const dynamic = 'force-static';
+
+export async function GET() {
+  const data = await fetch('https://...');
+  return Response.json(data);
+}
+```
+
+### 0.5. Implement Partial Prerendering (PPR)
+
+**Step: Enable PPR in next.config.ts**
+
+```typescript
+// next.config.ts
+import type { NextConfig } from 'next';
+
+const config: NextConfig = {
+  experimental: {
+    ppr: 'incremental', // Enable PPR incrementally per-route
+  },
+};
+
+export default config;
+```
+
+**Step: Add PPR to routes with dynamic content**
+
+```typescript
+// app/dashboard/layout.tsx
+export const experimental_ppr = true;
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
+}
+```
+
+```typescript
+// app/dashboard/page.tsx
+import { Suspense } from 'react';
+
+export default function Page() {
+  return (
+    <>
+      {/* Static shell - prerendered at build time */}
+      <StaticHeader />
+      <StaticSidebar />
+      
+      {/* Dynamic content - streamed at request time */}
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DynamicDashboard />
+      </Suspense>
+    </>
+  );
+}
+```
+
+**What makes components dynamic:**
+- `cookies()` or `headers()`
+- `connection()` or `draftMode()`
+- `searchParams` prop
+- `unstable_noStore()`
+- `fetch()` with `{ cache: 'no-store' }`
 
 ### 1. Audit Component Architecture
 
@@ -360,10 +468,16 @@ npx perf-check URL --mobile --insights
 | Preloading in child component | Arrives after `</head>` closes | Preload in `layout.tsx` |
 | Using both `priority` AND manual preload | Duplicate preloads | Use one or the other |
 | Parent with `"use client"` | All children become Client | Isolate client to leaves |
+| Wrapping entire `<html>` in providers | Prevents static optimization | Wrap only `{children}` in body |
+| Not configuring fetch caching | Data fetched every request | Use `cache: 'force-cache'` or `next.revalidate` |
+| Missing Suspense for dynamic content | Blocks entire page render | Wrap dynamic content in Suspense |
 
 ## References
 
 - [React: preload API](https://react.dev/reference/react-dom/preload)
-- [Next.js: getImageProps](https://nextjs.org/docs/app/api-reference/components/image#getimageprops)
-- [Next.js: Script Component](https://nextjs.org/docs/app/api-reference/components/script)
+- [Next.js 15: Caching and Revalidating](https://nextjs.org/docs/15/app/getting-started/caching-and-revalidating)
+- [Next.js 15: Partial Prerendering](https://nextjs.org/docs/15/app/getting-started/partial-prerendering)
+- [Next.js 15: Server and Client Components](https://nextjs.org/docs/15/app/getting-started/server-and-client-components)
+- [Next.js 15: getImageProps](https://nextjs.org/docs/15/app/api-reference/components/image#getimageprops)
+- [Next.js 15: Script Component](https://nextjs.org/docs/15/app/api-reference/components/script)
 - [web.dev: Optimize LCP](https://web.dev/optimize-lcp/)

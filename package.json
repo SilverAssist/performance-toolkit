@@ -1,6 +1,6 @@
 {
   "name": "@silverassist/performance-toolkit",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "PageSpeed Insights and Lighthouse CI integration for performance monitoring across SilverAssist projects",
   "author": "Miguel Colmenares <me@miguelcolmenares.com>",
   "license": "PolyForm Noncommercial License 1.0.0",
@@ -123,8 +123,8 @@
   "files": [
     "dist",
     "bin",
-    "src/.github/prompts",
-    "src/.github/skills",
+    "src/templates/prompts",
+    "src/templates/skills",
     "README.md",
     "LICENSE",
     "CHANGELOG.md"

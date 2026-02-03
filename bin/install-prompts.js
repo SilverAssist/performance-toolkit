@@ -87,7 +87,7 @@ function detectInstallationContext() {
  */
 function getPackagePromptsPath(overridePath = null) {
   const basePath = overridePath || path.resolve(__dirname, "..");
-  return path.resolve(basePath, "src", ".github", "prompts");
+  return path.resolve(basePath, "src", "templates", "prompts");
 }
 
 /**
@@ -96,7 +96,7 @@ function getPackagePromptsPath(overridePath = null) {
  */
 function getPackageSkillsPath(overridePath = null) {
   const basePath = overridePath || path.resolve(__dirname, "..");
-  return path.resolve(basePath, "src", ".github", "skills");
+  return path.resolve(basePath, "src", "templates", "skills");
 }
 
 /**

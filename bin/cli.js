@@ -1090,6 +1090,7 @@ function parseArgs() {
     output: null,
     baseline: null,
     help: false,
+    version: false,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -1099,6 +1100,10 @@ function parseArgs() {
       case "--help":
       case "-h":
         options.help = true;
+        break;
+      case "--version":
+      case "-V":
+        options.version = true;
         break;
       case "--mobile":
       case "-m":
@@ -1162,6 +1167,19 @@ function parseArgs() {
 }
 
 /**
+ * Show version number
+ */
+function showVersion() {
+  const packageJsonPath = path.join(__dirname, "..", "package.json");
+  try {
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
+    console.log(`@silverassist/performance-toolkit v${packageJson.version}`);
+  } catch {
+    console.log("@silverassist/performance-toolkit (version unknown)");
+  }
+}
+
+/**
  * Show help message
  */
 function showHelp() {
@@ -1199,7 +1217,8 @@ function showHelp() {
   console.log("  --config, -c       Path to configuration file");
   console.log("  --output, -o       Output results to JSON file");
   console.log("  --baseline, -b     Compare against baseline file");
-  console.log("  --help, -h         Show this help message\n");
+  console.log("  --help, -h         Show this help message");
+  console.log("  --version, -V      Show version number\n");
 
   log("Examples:", "cyan");
   console.log("  perf-check https://www.example.com");
@@ -1465,6 +1484,11 @@ async function main() {
 
   if (options.help) {
     showHelp();
+    process.exit(0);
+  }
+
+  if (options.version) {
+    showVersion();
     process.exit(0);
   }
 

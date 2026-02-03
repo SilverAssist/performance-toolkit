@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-02-03
+
+### Added
+
+- **CLI `--version` flag** - Show package version with `perf-check --version` or `-V`
+
+### Changed
+
+- **Renamed `src/.github` to `src/templates`** - Clearer naming for distributable prompts and skills
+  - Updated all internal references in `package.json`, `bin/install-prompts.js`, and documentation
+  - No breaking changes for consumers (installed paths remain `.github/prompts/` and `.github/skills/`)
+
+- **Next.js 15 performance best practices** - Updated all skills and prompts with Next.js 15 patterns
+  - Breaking change: `fetch()` is NOT cached by default (opt-in with `cache: 'force-cache'`)
+  - Added Partial Prerendering (PPR) configuration and usage patterns
+  - Added `use cache` directive for granular caching control
+  - Added streaming metadata patterns
+  - Added Server Actions configuration
+  - Added context providers pattern (render deep, not wrapping `<html>`)
+  - Updated `nextjs-performance` skill with comprehensive Next.js 15 guidance
+  - Updated `nextjs-tree-shaking` skill with `optimizePackageImports` pre-configured packages
+  - Updated `web-performance-analysis` skill with Next.js 15 considerations
+  - Updated `performance-patterns.md` partial with all new patterns
+
 ## [0.3.0] - 2026-02-03
 
 ### Added
@@ -120,7 +144,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Project Organization
 
-- Moved distributable Copilot prompts and skills from `.github/` to `src/.github/`
+- Moved distributable Copilot prompts and skills from `.github/` to `src/templates/`
   - Separates repository config from installable content
   - Updated `bin/install-prompts.js` paths
   - Updated `package.json` files array

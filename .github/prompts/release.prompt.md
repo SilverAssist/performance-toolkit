@@ -56,7 +56,7 @@ Verify `package.json` has correct configuration:
 
 - [ ] `name` is `@silverassist/performance-toolkit`
 - [ ] `version` matches target version
-- [ ] `files` array includes: `dist`, `bin`, `src/.github/prompts`, `src/.github/skills`, `README.md`, `LICENSE`, `CHANGELOG.md`
+- [ ] `files` array includes: `dist`, `bin`, `src/templates/prompts`, `src/templates/skills`, `README.md`, `LICENSE`, `CHANGELOG.md`
 - [ ] `main` points to `./dist/index.js`
 - [ ] `module` points to `./dist/index.mjs`
 - [ ] `types` points to `./dist/index.d.ts`
@@ -83,7 +83,7 @@ npm pack --dry-run
 - [ ] All expected files are included:
   - `dist/` folder with built files
   - `bin/cli.js` and `bin/install-prompts.js`
-  - `src/.github/prompts/` and `src/.github/skills/`
+  - `src/templates/prompts/` and `src/templates/skills/`
   - `README.md`, `LICENSE`, `CHANGELOG.md`
 - [ ] No unnecessary files (node_modules, .git, __tests__, etc.)
 

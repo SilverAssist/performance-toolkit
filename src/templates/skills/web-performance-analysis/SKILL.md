@@ -1,11 +1,11 @@
 ---
 name: web-performance-analysis
-description: Analyze and optimize web performance using PageSpeed Insights, Lighthouse, and Core Web Vitals. Use when debugging slow pages, optimizing LCP/FCP/CLS/TBT metrics, or conducting performance audits.
+description: Analyze and optimize web performance using PageSpeed Insights, Lighthouse, and Core Web Vitals. Includes Next.js 15 specific patterns. Use when debugging slow pages, optimizing LCP/FCP/CLS/TBT metrics, or conducting performance audits.
 ---
 
 # Web Performance Analysis
 
-Expert knowledge for analyzing and optimizing web performance using industry-standard tools and metrics.
+Expert knowledge for analyzing and optimizing web performance using industry-standard tools and metrics. Updated for **Next.js 15** with framework-specific optimizations.
 
 ## When to Use This Skill
 
@@ -14,6 +14,7 @@ Expert knowledge for analyzing and optimizing web performance using industry-sta
 - Analyzing PageSpeed Insights or Lighthouse reports
 - Identifying performance bottlenecks
 - Creating optimization action plans
+- Optimizing Next.js 15 applications
 
 ## Core Web Vitals Reference
 
@@ -24,6 +25,29 @@ Expert knowledge for analyzing and optimizing web performance using industry-sta
 | **CLS** (Cumulative Layout Shift) | ≤ 0.1 | 0.1 - 0.25 | > 0.25 |
 | **TBT** (Total Blocking Time) | ≤ 200ms | 200ms - 600ms | > 600ms |
 | **INP** (Interaction to Next Paint) | ≤ 200ms | 200ms - 500ms | > 500ms |
+
+## Next.js 15 Performance Considerations
+
+> ⚠️ **Next.js 15 Breaking Changes to Consider:**
+
+### 1. Caching Behavior Changed
+- `fetch()` is **NOT cached** by default (breaking change)
+- Must explicitly opt-in with `cache: 'force-cache'` or `next: { revalidate: N }`
+- Check if performance issues are caused by uncached data fetching
+
+### 2. Partial Prerendering (PPR)
+- New experimental feature for optimal static/dynamic balance
+- Enables instant static shell with streamed dynamic content
+- Can significantly improve perceived performance
+
+### 3. Streaming Metadata
+- Metadata no longer blocks UI rendering
+- Visual content appears faster
+
+### 4. Server/Client Component Architecture
+- `priority` prop on `<Image>` only works in Server Components
+- Client Component parents make ALL children Client Components
+- LCP preload must happen in `layout.tsx` for streamed pages
 
 ## HTTP Request Patterns for Performance Analysis
 
@@ -80,6 +104,7 @@ curl -s "URL" \
 
 ## LCP Optimization Checklist
 
+### General LCP Optimization
 1. **Identify the LCP element** - Usually hero image, main heading, or video
 2. **Check preload placement** - Must be in `<head>`, not `<body>`
 3. **Verify fetchPriority** - LCP images should have `fetchPriority="high"`
@@ -87,6 +112,14 @@ curl -s "URL" \
 5. **Optimize image format** - Use WebP/AVIF with fallbacks
 6. **Serve correct size** - Use srcset and sizes attributes
 7. **Use CDN** - Serve from edge locations
+
+### Next.js 15 LCP Optimization
+1. **Check component type** - Is LCP element in Server or Client Component?
+2. **Verify preload location** - Must use `ReactDOM.preload()` in `layout.tsx`
+3. **Don't use `priority` in Client Components** - Preload ends up in `<body>`
+4. **Check parent components** - Parent `"use client"` makes children Client
+5. **Consider PPR** - Static shell with dynamic content streaming
+6. **Verify caching** - Ensure data fetching uses `cache: 'force-cache'`
 
 ## Common Performance Issues
 
@@ -154,3 +187,7 @@ curl "https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=URL&strateg
 - [Web Vitals](https://web.dev/vitals/)
 - [PageSpeed Insights](https://pagespeed.web.dev/)
 - [Lighthouse](https://developer.chrome.com/docs/lighthouse/)
+- [Next.js 15 Caching and Revalidating](https://nextjs.org/docs/15/app/getting-started/caching-and-revalidating)
+- [Next.js 15 Partial Prerendering](https://nextjs.org/docs/15/app/getting-started/partial-prerendering)
+- [Next.js 15 Server and Client Components](https://nextjs.org/docs/15/app/getting-started/server-and-client-components)
+- [Next.js 15 Image Optimization](https://nextjs.org/docs/15/app/getting-started/images)

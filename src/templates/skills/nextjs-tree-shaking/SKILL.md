@@ -1,17 +1,24 @@
 ---
 name: nextjs-tree-shaking
-description: Optimize Next.js bundle size through better export patterns and tree-shaking. Use when converting default exports to named exports, refactoring barrel files, or configuring optimizePackageImports for better code splitting.
+description: Optimize Next.js 15 bundle size through better export patterns and tree-shaking. Use when converting default exports to named exports, refactoring barrel files, configuring optimizePackageImports, or implementing the 'use cache' directive for better code splitting.
 ---
 
-# Next.js Tree-Shaking & Export Pattern Optimization
+# Next.js 15 Tree-Shaking & Export Pattern Optimization
 
-Expert knowledge for optimizing module export patterns to improve tree-shaking effectiveness and reduce bundle size in Next.js applications.
+Expert knowledge for optimizing module export patterns to improve tree-shaking effectiveness and reduce bundle size in Next.js 15 applications.
+
+> **Next.js 15 Key Changes:**
+> - `use cache` directive for granular caching control (experimental)
+> - Enhanced `optimizePackageImports` support
+> - Improved static analysis for Server Components
+> - Better tree-shaking with React 19
 
 ## When to Use This Skill
 
 - Converting default exports to named exports for better tree-shaking
 - Refactoring barrel files (index.ts) to use optimal re-export patterns
 - Configuring `optimizePackageImports` in next.config.js
+- Using the `use cache` directive for function-level caching
 - Reducing bundle size through better static analysis
 - Improving build performance and HMR (Hot Module Replacement)
 
@@ -300,9 +307,46 @@ export function slugify(str: string): string {
 import { capitalize, slugify } from '@/lib/string-utils';
 ```
 
-## Next.js-Specific Optimizations
+## Next.js 15-Specific Optimizations
 
-### Using optimizePackageImports
+### The 'use cache' Directive (Experimental)
+
+Next.js 15 introduces a new `use cache` directive for granular caching control at the function level:
+
+```typescript
+// Enable in next.config.ts
+const config = {
+  experimental: {
+    dynamicIO: true,
+  },
+};
+
+// Use in components or functions
+async function getData() {
+  'use cache';
+  const response = await fetch('https://api.example.com/data');
+  return response.json();
+}
+
+// With cache lifetime configuration
+async function getCachedData() {
+  'use cache';
+  cacheLife('hours'); // 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks' | 'max'
+  return fetchExpensiveData();
+}
+
+// With cache tag for manual invalidation
+async function getUserProfile(userId: string) {
+  'use cache';
+  cacheTag(`user-${userId}`);
+  return db.users.findUnique({ where: { id: userId } });
+}
+// Invalidate with: revalidateTag(`user-${userId}`)
+```
+
+### Using optimizePackageImports (Enhanced in Next.js 15)
+
+Next.js 15 has improved the `optimizePackageImports` feature for better tree-shaking:
 
 ```javascript
 // next.config.mjs
@@ -318,10 +362,36 @@ export default {
       '@mui/material',
       '@chakra-ui/react',
       'lucide-react',
+      '@radix-ui/react-icons',
     ],
   },
 };
 ```
+
+**Pre-configured packages (automatic optimization):**
+Next.js 15 automatically optimizes these packages without configuration:
+- `lucide-react`
+- `date-fns`
+- `lodash-es`
+- `ramda`
+- `antd`
+- `react-bootstrap`
+- `ahooks`
+- `@headlessui/react`
+- `@heroicons/react`
+- `@visx/*`
+- `@tremor/*`
+- `rxjs`
+- `@mui/material`
+- `@mui/icons-material`
+- `recharts`
+- `react-use`
+- `effect`
+- `@material-ui/core`
+- `@material-ui/icons`
+- `@tabler/icons-react`
+- `mui-core`
+- `react-icons/*`
 
 ### Checking Optimization Status
 
@@ -422,7 +492,8 @@ Route (app)              Size     First Load JS
 
 ## References
 
-- [Next.js optimizePackageImports Documentation](https://nextjs.org/docs/app/api-reference/next-config-js/optimizePackageImports)
+- [Next.js 15 optimizePackageImports Documentation](https://nextjs.org/docs/15/app/api-reference/config/next-config-js/optimizePackageImports)
+- [Next.js 15 Caching and Revalidating](https://nextjs.org/docs/15/app/getting-started/caching-and-revalidating)
 - [Webpack Tree Shaking Guide](https://webpack.js.org/guides/tree-shaking/)
 - [ES Modules and Tree Shaking (MDN)](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)
 - [Why ESM is the future](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c)

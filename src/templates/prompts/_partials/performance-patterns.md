@@ -1,6 +1,6 @@
 # Performance Patterns Partial
 
-Reusable performance optimization patterns for prompts.
+Reusable performance optimization patterns for prompts. Updated for **Next.js 15**.
 
 ## Usage
 
@@ -9,6 +9,17 @@ Reference in other prompts:
 ## Prerequisites
 - Reference: `.github/prompts/_partials/performance-patterns.md`
 ```
+
+---
+
+## Next.js 15 Key Changes
+
+> ⚠️ **Breaking Changes in Next.js 15:**
+> - `fetch()` is NOT cached by default (opt-in with `cache: 'force-cache'`)
+> - Partial Prerendering (PPR) available as experimental feature
+> - `use cache` directive for granular caching control
+> - Streaming metadata for improved perceived performance
+> - React 19 features including `use()` hook
 
 ---
 
@@ -462,6 +473,74 @@ export default function RootLayout({ children }) {
 
 ## Caching Patterns
 
+### Next.js 15 Fetch Caching
+
+> ⚠️ **Breaking Change**: In Next.js 15, `fetch()` is NOT cached by default.
+> You must explicitly opt-in to caching.
+
+```typescript
+// ❌ NOT CACHED in Next.js 15 (default behavior changed!)
+const data = await fetch('https://api.example.com/data');
+
+// ✅ CACHED - opt-in with force-cache
+const data = await fetch('https://api.example.com/data', {
+  cache: 'force-cache'
+});
+
+// ✅ TIME-BASED REVALIDATION
+const data = await fetch('https://api.example.com/data', {
+  next: { revalidate: 3600 } // Revalidate every hour
+});
+
+// ✅ TAG-BASED REVALIDATION
+const data = await fetch('https://api.example.com/data', {
+  next: { tags: ['products'] }
+});
+// Invalidate with: revalidateTag('products')
+```
+
+### Using unstable_cache for Non-Fetch Operations
+
+```typescript
+import { unstable_cache } from 'next/cache';
+
+const getCachedUser = unstable_cache(
+  async (userId: string) => {
+    return db.query.users.findFirst({ where: eq(users.id, userId) });
+  },
+  ['user-cache'], // cache key prefix
+  { 
+    revalidate: 3600,
+    tags: ['users']
+  }
+);
+```
+
+### The 'use cache' Directive (Next.js 15 Experimental)
+
+```typescript
+// Enable in next.config.ts
+const config = {
+  experimental: {
+    dynamicIO: true,
+  },
+};
+
+// Use in components or functions
+async function getData() {
+  'use cache';
+  const response = await fetch('https://api.example.com/data');
+  return response.json();
+}
+
+// With cache lifetime configuration
+async function getCachedData() {
+  'use cache';
+  cacheLife('hours'); // 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks' | 'max'
+  return fetchExpensiveData();
+}
+```
+
 ### Next.js Cache Headers
 
 ```typescript
@@ -492,22 +571,176 @@ module.exports = {
 };
 ```
 
-### Data Fetching Cache
+### Route Handler Caching (Next.js 15)
 
 ```typescript
-// Next.js App Router
-async function getData() {
-  const res = await fetch('https://api.example.com/data', {
-    next: { 
-      revalidate: 3600, // Revalidate every hour
-    },
-  });
-  return res.json();
+// app/api/data/route.ts
+// ❌ NOT CACHED by default
+export async function GET() {
+  const data = await fetch('https://...');
+  return Response.json(data);
 }
 
-// Force static generation
+// ✅ CACHED with config
 export const dynamic = 'force-static';
-export const revalidate = 3600;
+
+export async function GET() {
+  const data = await fetch('https://...');
+  return Response.json(data);
+}
+```
+
+---
+
+## Partial Prerendering (PPR) Patterns
+
+> PPR allows combining static and dynamic content in the same route for optimal performance.
+
+### Enabling PPR
+
+```typescript
+// next.config.ts
+import type { NextConfig } from 'next';
+
+const config: NextConfig = {
+  experimental: {
+    ppr: 'incremental', // Enable PPR incrementally per-route
+  },
+};
+
+export default config;
+```
+
+### Using PPR in Routes
+
+```typescript
+// app/dashboard/layout.tsx
+export const experimental_ppr = true;
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
+}
+```
+
+```typescript
+// app/dashboard/page.tsx
+import { Suspense } from 'react';
+
+export default function Page() {
+  return (
+    <>
+      {/* Static shell - prerendered at build time */}
+      <StaticHeader />
+      <StaticSidebar />
+      
+      {/* Dynamic content - streamed at request time */}
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DynamicDashboard />
+      </Suspense>
+    </>
+  );
+}
+```
+
+### What Makes Components Dynamic
+
+A component becomes dynamic when it uses:
+- `cookies()` or `headers()`
+- `connection()` or `draftMode()`
+- `searchParams` prop
+- `unstable_noStore()`
+- `fetch()` with `{ cache: 'no-store' }`
+
+---
+
+## Context Providers Pattern (Next.js 15)
+
+> **Good to know:** Render providers as deep as possible in the tree to optimize static parts.
+
+```typescript
+// app/providers.tsx
+"use client";
+import { ThemeProvider } from './theme-provider';
+
+export function Providers({ children }) {
+  return <ThemeProvider>{children}</ThemeProvider>;
+}
+
+// app/layout.tsx (Server Component)
+import { Providers } from './providers';
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        <Providers>{children}</Providers>  {/* Wrap only children, NOT <html> */}
+      </body>
+    </html>
+  );
+}
+```
+
+---
+
+## Streaming Metadata (Next.js 15)
+
+Next.js 15 streams metadata separately, allowing visual content to render before metadata resolves:
+
+```typescript
+// app/blog/[slug]/page.tsx
+export async function generateMetadata({ params }) {
+  // This doesn't block UI rendering in Next.js 15
+  const post = await fetchPost(params.slug);
+  return {
+    title: post.title,
+    description: post.excerpt,
+  };
+}
+```
+
+> **Note:** Streaming metadata is disabled for bots/crawlers (Twitterbot, Slackbot, Bingbot).
+
+---
+
+## Server Actions Configuration (Next.js 15)
+
+```typescript
+// next.config.js
+module.exports = {
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+      allowedOrigins: ['my-proxy.com', '*.my-proxy.com'],
+    },
+  },
+};
+```
+
+---
+
+## Middleware Best Practices
+
+Middleware is effective for:
+- Quick redirects after reading request
+- Rewriting based on A/B tests
+- Modifying headers
+
+**NOT good for:**
+- Slow data fetching
+- Session management
+
+```typescript
+// middleware.ts
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+export function middleware(request: NextRequest) {
+  return NextResponse.redirect(new URL('/home', request.url));
+}
+
+export const config = {
+  matcher: '/about/:path*',
+};
 ```
 
 ---
