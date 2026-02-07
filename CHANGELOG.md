@@ -5,6 +5,75 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-02-07
+
+### Changed
+
+- **Next.js 16 Migration** - Complete update of all skills and prompts for Next.js 16
+  
+  #### Cache Components & "use cache" Directive
+
+  - **Breaking**: Route segment configs (`revalidate`, `dynamic`, `fetchCache`) deprecated with `cacheComponents`
+  - New `"use cache"` directive for file, component, and function-level caching
+  - `cacheLife()` for cache duration: `'seconds'`, `'minutes'`, `'hours'`, `'days'`, `'weeks'`, `'max'`
+  - `cacheTag()` and `updateTag()` for granular cache invalidation
+  - `revalidateTag()` now requires cache profile as second argument
+  
+  #### Async Dynamic APIs (Breaking Change)
+
+  - All dynamic APIs must now be awaited: `params`, `searchParams`, `cookies()`, `headers()`, `draftMode()`
+  - Updated all code examples in skills and prompts
+  
+  #### Turbopack (Default Bundler)
+
+  - Turbopack is now the default bundler in Next.js 16
+  - Added `turbopackFileSystemCache: true` configuration
+  - New `next experimental-analyze` command for bundle analysis
+  - Context detector now returns `turbopack` as build tool for Next.js 16+
+  
+  #### React 19.2 Features
+
+  - React Compiler for automatic memoization (eliminates manual `useMemo`/`useCallback`)
+  - View Transitions for smooth page transitions
+  - Activity component for preserved state during navigation
+  
+  #### Image Optimization
+
+  - Default `minimumCacheTTL` changed to 4 hours (was 60 seconds)
+  - Default quality coerced to `[75]`
+  - `dangerouslyAllowLocalIP` required for localhost image sources
+  - `images.domains` deprecated, use `remotePatterns`
+  
+  #### New Features
+
+  - `proxy.ts` file convention for Node.js runtime request proxying
+  - Parallel routes now require explicit `default.js` for fallback
+  
+  #### Removed Features
+
+  - `next lint` CLI removed (use ESLint directly)
+  - AMP support removed
+  - `next/legacy/image` removed
+  - `experimental.ppr` replaced by `cacheComponents: true`
+  - `unstable_cache` deprecated (use `"use cache"`)
+  
+  #### Updated Files
+
+  - `src/templates/skills/nextjs-performance/SKILL.md` - Complete rewrite for Next.js 16
+  - `src/templates/prompts/nextjs-performance.prompt.md` - Cache Components patterns
+  - `src/templates/prompts/_partials/performance-patterns.md` - All new patterns
+  - `src/templates/prompts/optimize-lcp.prompt.md` - Updated for async params, new image defaults
+  - `src/templates/prompts/optimize-bundle.prompt.md` - Turbopack and React Compiler
+  - `src/templates/prompts/detect-context.prompt.md` - Next.js 16 feature detection
+  - `src/context/index.ts` - Detect Next.js 16 features and Turbopack
+  - `src/types/context/index.ts` - Documented new feature flags
+
+### Breaking Changes
+
+- **Node.js 20.9+** is now required by Next.js 16 projects
+- Skills and prompts now target Next.js 16 patterns by default
+- For Next.js 15 projects, some patterns may need adjustment
+
 ## [0.3.1] - 2026-02-03
 
 ### Added

@@ -34,7 +34,21 @@ export interface FrameworkInfo {
   routerType?: "app" | "pages" | "file-based" | "config-based";
   /** SSR/SSG capabilities */
   renderingMode?: "ssr" | "ssg" | "spa" | "hybrid" | "isr";
-  /** Framework-specific features detected */
+  /**
+   * Framework-specific features detected
+   *
+   * For Next.js 16+:
+   * - "cache-components": Using "use cache" directive
+   * - "turbopack": Turbopack bundler (default in 16+)
+   * - "react-compiler": Automatic memoization
+   * - "view-transitions": React 19.2 View Transitions
+   *
+   * Common features:
+   * - "auth": Authentication integration
+   * - "font-optimization": Font optimization
+   * - "i18n": Internationalization
+   * - "mdx": MDX support
+   */
   features?: string[];
 }
 

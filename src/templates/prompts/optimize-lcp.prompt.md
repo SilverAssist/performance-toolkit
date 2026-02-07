@@ -1,6 +1,6 @@
 ---
 agent: agent
-description: Optimize Largest Contentful Paint (LCP) with framework-specific implementation
+description: Optimize Largest Contentful Paint (LCP) with framework-specific implementation for Next.js 16
 ---
 
 # Optimize LCP
@@ -12,6 +12,14 @@ Optimize the Largest Contentful Paint element to achieve < 2.5 seconds.
 - Run `analyze-performance` first to identify the LCP element
 - Access to the codebase
 - Reference: `.github/prompts/_partials-performance/performance-patterns.md`
+
+## Next.js 16 Considerations
+
+> **Image optimization defaults changed in Next.js 16:**
+> - `minimumCacheTTL` is now 4 hours (was 60 seconds)
+> - Default quality is 75
+> - `images.domains` is deprecated, use `remotePatterns`
+> - `params` and `searchParams` must be awaited
 
 ## Context Required
 
@@ -51,7 +59,9 @@ import { getImageProps } from "next/image";
 import { preload } from "react-dom";
 
 export default async function Layout({ children, params }) {
-  const data = await getData(params);
+  // Next.js 16: params must be awaited
+  const resolvedParams = await params;
+  const data = await getData(resolvedParams);
   const lcpImageUrl = data.heroImage;
 
   if (lcpImageUrl) {
@@ -222,16 +232,23 @@ For standard HTML:
 
 **Step: Implement caching strategies**
 
-For Next.js with caching:
+For Next.js 16 with Cache Components:
 ```typescript
 // app/page.tsx
-export const revalidate = 3600; // Revalidate every hour
+import { cacheLife, cacheTag } from 'next/cache';
 
-// Or with fetch caching
-const data = await fetch('https://api.example.com/hero', {
-  next: { revalidate: 3600 }
-});
+export default async function Page() {
+  'use cache'
+  cacheLife('hours')
+  cacheTag('hero-page')
+  
+  const data = await fetch('https://api.example.com/hero');
+  return <HeroSection data={data} />;
+}
 ```
+
+> **Note**: Route segment configs like `export const revalidate` are deprecated
+> with `cacheComponents: true`. Use the `"use cache"` directive instead.
 
 For Edge caching:
 ```typescript
@@ -390,7 +407,8 @@ eval curl -s $HEADERS "URL" | grep -o '<link[^>]*as="image"[^>]*>'
 
 ## Framework Reference
 
-### Next.js
+### Next.js 16
+- [Cache Components](https://nextjs.org/docs/app/getting-started/cache-components)
 - [Image Optimization](https://nextjs.org/docs/app/building-your-application/optimizing/images)
 - [Font Optimization](https://nextjs.org/docs/app/building-your-application/optimizing/fonts)
 - [Script Optimization](https://nextjs.org/docs/app/building-your-application/optimizing/scripts)
@@ -404,6 +422,13 @@ When `preload()` or `priority` is called in a child component, it arrives AFTER 
 placing the preload in `<body>` where it's less effective.
 
 **Solution**: Always call `preload()` in `layout.tsx` which renders BEFORE children stream.
+
+### Next.js 16 Breaking Changes for LCP
+
+1. **Await params**: `const { slug } = await params;`
+2. **Image cache TTL**: Default is now 4 hours (14400s)
+3. **Use remotePatterns**: `images.domains` is deprecated
+4. **Use "use cache"**: Route segment configs deprecated with cacheComponents
 
 ### General
 - [Optimize LCP](https://web.dev/optimize-lcp/)

@@ -39,11 +39,16 @@ Check for these frameworks in order:
 ### 3. Detect Framework Version & Features
 
 **For Next.js:**
-- Check version number
+- Check version number (14 → 15 → 16)
 - Determine router type:
   - Version >= 13.4: Likely App Router
   - Version < 13: Pages Router
-- Check for features:
+- Check for Next.js 16 features:
+  - `cacheComponents: true` in next.config
+  - `reactCompiler: true` in next.config
+  - `viewTransition: true` in next.config
+  - `proxy.ts` file present
+- Check for other features:
   - `next-auth` or `@auth/nextjs-provider`: Auth
   - `@next/font`: Font optimization
   - `next-intl` or `next-i18next`: i18n
@@ -65,7 +70,8 @@ Check for these frameworks in order:
 - `vite`: Vite
 - `webpack`: Webpack
 - `esbuild`: esbuild
-- (Next.js uses Webpack/Turbopack by default)
+- (Next.js 16 uses Turbopack by default)
+- Check `next.config.ts` for `turbopackFileSystemCache`
 
 **TypeScript:**
 - `typescript` in devDependencies
@@ -153,7 +159,8 @@ Based on the detected stack:
 
 | Technology | Performance Consideration |
 |------------|---------------------------|
-| Next.js 14 | Use `next/image`, `next/font`, `next/script` |
+| Next.js 16 | Use `"use cache"` directive, React Compiler, Turbopack |
+| Next.js 15 | Use `cache: 'force-cache'`, route segment configs |
 | App Router | Leverage Server Components, streaming |
 | Tailwind CSS | Purge unused styles in production |
 | Prisma | Consider edge-compatible alternatives if needed |
@@ -166,13 +173,15 @@ Based on your stack:
 1. **Images**: Use `next/image` with priority for LCP images
 2. **Fonts**: Use `next/font` for automatic font optimization
 3. **Scripts**: Use `next/script` with appropriate strategies
-4. **Bundle**: Enable `optimizePackageImports` for heavy libraries
-5. **Analytics**: Load analytics with `lazyOnload` strategy
+4. **Bundle**: Enable `reactCompiler` and `turbopackFileSystemCache`
+5. **Caching**: Use `"use cache"` directive (Next.js 16) or route segment configs
+6. **Analytics**: Load analytics with `lazyOnload` strategy
 
 ### Files to Review
 
 - `next.config.js` or `next.config.ts` - Build configuration
 - `app/layout.tsx` - Root layout for fonts, scripts
+- `app/proxy.ts` - Request proxying (Next.js 16)
 - `tailwind.config.js` - Tailwind purge settings
 - `middleware.ts` - Edge middleware if present
 

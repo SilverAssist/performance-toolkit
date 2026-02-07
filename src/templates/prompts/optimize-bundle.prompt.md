@@ -1,6 +1,6 @@
 ---
 agent: agent
-description: Analyze and optimize JavaScript bundle size with code splitting and tree shaking
+description: Analyze and optimize JavaScript bundle size with code splitting, tree shaking, and React Compiler
 ---
 
 # Optimize Bundle
@@ -13,23 +13,45 @@ Reduce JavaScript bundle size and improve loading performance.
 - Access to build configuration
 - Reference: Performance analysis report
 
+## Next.js 16 Bundle Considerations
+
+> **Next.js 16 Changes:**
+> - **Turbopack** is now the default bundler (2-5x faster builds)
+> - **React Compiler** eliminates need for manual `useMemo`/`useCallback`
+> - **`next experimental-analyze`** for bundle analysis (16.1+)
+> - Enable `turbopackFileSystemCache` for faster dev rebuilds
+
 ## Steps
 
 ### 1. Analyze Bundle Composition
 
 **Step: Generate bundle analysis**
 
-For Next.js:
+For Next.js 16 (Turbopack):
 ```bash
-# Install analyzer
-npm install --save-dev @next/bundle-analyzer
+# Use experimental analyze command (16.1+)
+next experimental-analyze
 
-# Update next.config.js
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
+# Or use @next/bundle-analyzer
+npm install --save-dev @next/bundle-analyzer
+```
+
+```typescript
+// next.config.ts
+import bundleAnalyzer from '@next/bundle-analyzer';
+
+const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
-module.exports = withBundleAnalyzer(nextConfig);
 
+export default withBundleAnalyzer({
+  // Enable Turbopack optimizations
+  turbopackFileSystemCache: true,
+  reactCompiler: true, // Automatic memoization
+});
+```
+
+```bash
 # Run analysis
 ANALYZE=true npm run build
 ```
@@ -139,9 +161,32 @@ import { debounce } from 'lodash-es';
 
 ### 5. Remove Unused Code
 
+**Step: Enable React Compiler (Next.js 16)**
+
+React Compiler automatically optimizes re-renders, eliminating manual memoization:
+
+```typescript
+// next.config.ts
+const nextConfig = {
+  reactCompiler: true, // Enables automatic memoization
+};
+```
+
+```typescript
+// ❌ No longer needed with React Compiler
+const memoizedValue = useMemo(() => expensiveComputation(a, b), [a, b]);
+const memoizedCallback = useCallback(() => doSomething(a, b), [a, b]);
+const MemoizedComponent = memo(MyComponent);
+
+// ✅ Just write normal code - compiler optimizes automatically
+const value = expensiveComputation(a, b);
+const callback = () => doSomething(a, b);
+function MyComponent() { ... }
+```
+
 **Step: Enable tree shaking**
 
-For Next.js/Webpack:
+For Next.js/Turbopack:
 ```javascript
 // next.config.js
 module.exports = {
@@ -287,5 +332,7 @@ npx perf-check {url} --insights
 ## Resources
 
 - [Reduce JavaScript Payloads](https://web.dev/reduce-javascript-payloads-with-code-splitting/)
+- [Next.js 16: Turbopack](https://nextjs.org/docs/app/getting-started/turbopack)
+- [Next.js 16: React Compiler](https://nextjs.org/docs/app/getting-started/react-compiler)
 - [Next.js Code Splitting](https://nextjs.org/docs/app/building-your-application/optimizing/lazy-loading)
 - [Bundle Phobia](https://bundlephobia.com/)

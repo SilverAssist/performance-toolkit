@@ -1,132 +1,246 @@
 ---
 name: nextjs-performance
-description: Optimize Next.js 15 App Router performance including LCP, streaming, PPR (Partial Prerendering), Server/Client Components architecture, caching strategies, and image preloading. Use when working on Next.js performance issues, LCP optimization, or component architecture decisions.
+description: Optimize Next.js 16 App Router performance including LCP, Cache Components with "use cache" directive, Turbopack, Server/Client Components architecture, and image preloading. Use when working on Next.js performance issues, LCP optimization, or component architecture decisions.
 ---
 
-# Next.js 15 App Router Performance Optimization
+# Next.js 16 App Router Performance Optimization
 
-Expert knowledge for optimizing Next.js 15 App Router applications, based on real-world optimizations achieving FCP -55%, SI -61%.
+Expert knowledge for optimizing Next.js 16 App Router applications, based on real-world optimizations achieving FCP -55%, SI -61%.
 
-> **Next.js 15 Key Changes:**
-> - `fetch()` is NOT cached by default (opt-in with `cache: 'force-cache'`)
-> - Partial Prerendering (PPR) available as experimental feature
-> - `use cache` directive for granular caching control
-> - Streaming metadata for improved perceived performance
-> - React 19 features including `use()` hook
+> **Next.js 16 Key Changes:**
+> - **Cache Components** with `"use cache"` directive (replaces route segment configs)
+> - **Turbopack** is now the default bundler (2-5x faster builds)
+> - **Async Dynamic APIs** - `params`, `searchParams`, `cookies()`, `headers()` must be awaited
+> - **Node.js 20.9+** required
+> - **React 19.2** with View Transitions and Activity component
+> - **React Compiler** for automatic memoization
+> - **proxy.ts** - new file convention for request proxying
 
 ## When to Use This Skill
 
-- Debugging LCP (Largest Contentful Paint) issues in Next.js 15
+- Debugging LCP (Largest Contentful Paint) issues in Next.js 16
+- Migrating from Next.js 15 route segment configs to Cache Components
 - Optimizing image loading and preloading
 - Restructuring Server/Client Component architecture
-- Implementing streaming-aware patterns
-- Configuring caching strategies (Next.js 15 no longer caches fetch by default)
-- Implementing Partial Prerendering (PPR)
+- Implementing Cache Components with `"use cache"` directive
+- Configuring Turbopack optimizations
 - Analyzing Core Web Vitals issues
 
-## Next.js 15 Caching Changes
+## Cache Components & "use cache" Directive
 
-> ⚠️ **Breaking Change in Next.js 15**: `fetch()` requests are NOT cached by default.
-> You must explicitly opt-in to caching.
+> ⚠️ **Paradigm Shift in Next.js 16**: Caching is now explicit opt-in with `"use cache"`.
+> Route segment configs like `revalidate`, `dynamic`, `fetchCache` are replaced.
 
-### Caching Strategies
-
-```typescript
-// ❌ NOT CACHED (Next.js 15 default behavior)
-const data = await fetch('https://api.example.com/data');
-
-// ✅ CACHED - opt-in with force-cache
-const data = await fetch('https://api.example.com/data', {
-  cache: 'force-cache'
-});
-
-// ✅ TIME-BASED REVALIDATION
-const data = await fetch('https://api.example.com/data', {
-  next: { revalidate: 3600 } // Revalidate every hour
-});
-
-// ✅ TAG-BASED REVALIDATION
-const data = await fetch('https://api.example.com/data', {
-  next: { tags: ['products'] }
-});
-// Then revalidate with: revalidateTag('products')
-```
-
-### Using unstable_cache for Non-Fetch Operations
-
-```typescript
-import { unstable_cache } from 'next/cache';
-
-const getCachedUser = unstable_cache(
-  async (userId: string) => {
-    return db.query.users.findFirst({ where: eq(users.id, userId) });
-  },
-  ['user-cache'], // cache key prefix
-  { 
-    revalidate: 3600,
-    tags: ['users']
-  }
-);
-```
-
-## Partial Prerendering (PPR)
-
-PPR allows combining static and dynamic content in the same route for optimal performance.
-
-### Enabling PPR
+### Enabling Cache Components
 
 ```typescript
 // next.config.ts
 import type { NextConfig } from 'next';
 
 const config: NextConfig = {
-  experimental: {
-    ppr: 'incremental', // Enable PPR incrementally per-route
-  },
+  cacheComponents: true, // Enables Cache Components (includes PPR by default)
 };
 
 export default config;
 ```
 
-### Using PPR in Routes
+### Using "use cache" Directive
 
 ```typescript
-// app/dashboard/layout.tsx
-export const experimental_ppr = true;
+// File-level caching
+'use cache'
+import { cacheLife } from 'next/cache';
 
-export default function Layout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+export default async function Page() {
+  cacheLife('hours'); // Configure cache duration
+  const data = await fetch('/api/data');
+  return <div>{data}</div>;
+}
+
+// Component-level caching
+async function BlogPosts() {
+  'use cache'
+  cacheLife('hours')
+  const posts = await fetch('/api/posts');
+  return <ul>{posts.map(p => <li key={p.id}>{p.title}</li>)}</ul>;
+}
+
+// Function-level caching
+async function getData() {
+  'use cache'
+  cacheLife('days')
+  return fetch('/api/data');
 }
 ```
 
-```typescript
-// app/dashboard/page.tsx
-import { Suspense } from 'react';
+### Cache Profiles (Built-in)
 
-export default function Page() {
-  return (
-    <>
-      {/* Static shell - prerendered at build time */}
-      <StaticHeader />
-      <StaticSidebar />
-      
-      {/* Dynamic content - streamed at request time */}
-      <Suspense fallback={<DashboardSkeleton />}>
-        <DynamicDashboard />
-      </Suspense>
-    </>
-  );
+| Profile | Use Case |
+|---------|----------|
+| `'seconds'` | Very short cache |
+| `'minutes'` | Short cache |
+| `'hours'` | Medium cache (recommended default) |
+| `'days'` | Long cache |
+| `'weeks'` | Very long cache |
+| `'max'` | Maximum cache duration |
+
+### Custom Cache Profile
+
+```typescript
+import { cacheLife } from 'next/cache';
+
+cacheLife({
+  stale: 3600,      // 1 hour client-side
+  revalidate: 7200, // 2 hours server-side
+  expire: 86400,    // 1 day max
+});
+```
+
+### Cache Tags for Revalidation
+
+```typescript
+import { cacheLife, cacheTag, updateTag } from 'next/cache';
+
+async function getCart() {
+  'use cache'
+  cacheTag('cart')
+  cacheLife('hours')
+  return fetch('/api/cart');
+}
+
+// In Server Action - immediately invalidate
+async function addToCart(itemId: string) {
+  'use server'
+  await db.cart.add(itemId);
+  updateTag('cart'); // Immediately invalidates and refreshes
 }
 ```
 
-### What Makes Components Dynamic
+### Migration from Next.js 15 Patterns
 
-A component becomes dynamic when it uses:
-- `cookies()` or `headers()`
-- `connection()` or `draftMode()`
-- `searchParams` prop
-- `unstable_noStore()`
-- `fetch()` with `{ cache: 'no-store' }`
+```typescript
+// ❌ Next.js 15 (deprecated with cacheComponents)
+export const dynamic = 'force-static';
+export const revalidate = 3600;
+
+export default async function Page() {
+  const data = await fetch('/api/data', { cache: 'force-cache' });
+  return <div>{data}</div>;
+}
+
+// ✅ Next.js 16 with Cache Components
+import { cacheLife } from 'next/cache';
+
+export default async function Page() {
+  'use cache'
+  cacheLife('hours')
+  const data = await fetch('/api/data');
+  return <div>{data}</div>;
+}
+```
+
+## Turbopack (Default Bundler)
+
+Turbopack is now the **default bundler** in Next.js 16.
+
+### Performance Benefits
+
+- 2-5x faster production builds
+- 10x faster Fast Refresh in development
+- 10-14x faster dev server restarts (with FS caching)
+
+### Configuration
+
+```typescript
+// next.config.ts
+const nextConfig = {
+  // Enable Turbopack File System Cache (16.1+)
+  turbopackFileSystemCache: true,
+};
+```
+
+### CLI Options
+
+```bash
+# Development (Turbopack is default)
+next dev
+
+# Force webpack (if needed for compatibility)
+next dev --webpack
+
+# Production build (Turbopack)
+next build
+
+# Bundle analysis (experimental in 16.1)
+next experimental-analyze
+```
+
+## Async Dynamic APIs (Breaking Change)
+
+All dynamic APIs must now be awaited:
+
+```typescript
+// ❌ Next.js 15 (deprecated)
+export default function Page({ params, searchParams }) {
+  const { slug } = params;
+  const { q } = searchParams;
+}
+
+// ✅ Next.js 16
+export default async function Page({ params, searchParams }) {
+  const { slug } = await params;
+  const { q } = await searchParams;
+}
+
+// Also applies to:
+const cookieStore = await cookies();
+const headersList = await headers();
+const { isEnabled } = await draftMode();
+```
+
+## Image Optimization (Next.js 16 Defaults)
+
+### Changed Defaults
+
+```typescript
+// next.config.ts - Next.js 16 new defaults
+const nextConfig = {
+  images: {
+    minimumCacheTTL: 14400,     // 4 hours (was 60 seconds in Next.js 15)
+    quality: [75],              // Coerced to single value
+  },
+};
+```
+
+### New Requirement for Local Development
+
+```typescript
+// next.config.ts - Required for localhost image sources
+const nextConfig = {
+  images: {
+    dangerouslyAllowLocalIP: true,
+  },
+};
+```
+
+### Migration from images.domains
+
+```typescript
+// ❌ Deprecated
+images: {
+  domains: ['example.com'],
+}
+
+// ✅ Use remotePatterns
+images: {
+  remotePatterns: [
+    {
+      protocol: 'https',
+      hostname: 'example.com',
+    },
+  ],
+}
+```
 
 ## Critical: LCP Image Preload in App Router
 
@@ -149,7 +263,8 @@ import { getImageProps } from "next/image";
 import { preload } from "react-dom";
 
 export default async function Layout({ children, params }) {
-  const data = await getData(params);
+  const resolvedParams = await params; // Next.js 16: await params
+  const data = await getData(resolvedParams);
   
   if (data.lcpImage) {
     const imageProps = getImageProps({ 
@@ -218,7 +333,7 @@ export function LeadModal() {
 }
 ```
 
-### Reducing JS Bundle Size (Next.js 15 Best Practice)
+### Reducing JS Bundle Size
 
 Add `'use client'` to specific interactive components instead of marking large parts of UI as Client Components:
 
@@ -248,6 +363,97 @@ export default function Layout({ children }) {
 4. **Render providers as deep as possible** - Wrap `{children}` not entire `<html>`
 5. **Use `server-only` package** - Prevent accidental client imports of server code
 
+## React Compiler (Automatic Memoization)
+
+React Compiler is now stable in Next.js 16, eliminating the need for manual `useMemo`/`useCallback`.
+
+### Enabling React Compiler
+
+```typescript
+// next.config.ts
+const nextConfig = {
+  reactCompiler: true,
+};
+```
+
+### Performance Benefits
+
+- Eliminates need for manual memoization (`useMemo`, `useCallback`, `memo`)
+- Reduces bundle size (no memoization wrapper code)
+- Automatically optimizes re-renders
+- Fixes issues from missing dependencies in hooks
+
+## View Transitions (React 19.2)
+
+View Transitions enable smooth page transitions without layout shifts.
+
+### Enabling View Transitions
+
+```typescript
+// next.config.ts
+const nextConfig = {
+  viewTransition: true,
+};
+```
+
+### Using View Transitions
+
+```typescript
+import { useViewTransition } from 'react';
+
+function Component() {
+  const [isPending, startViewTransition] = useViewTransition();
+  
+  return (
+    <button onClick={() => startViewTransition(() => {
+      // State updates with smooth transitions
+      setShowDetails(true);
+    })}>
+      {isPending ? 'Loading...' : 'Show Details'}
+    </button>
+  );
+}
+```
+
+### CLS Impact
+
+View Transitions help prevent CLS by:
+- Maintaining visual stability during navigation
+- Smoothly transitioning layout changes
+- Preserving scroll position with Activity component
+
+## proxy.ts (New File Convention)
+
+New file convention for request proxying with clearer network boundary.
+
+### middleware.ts vs proxy.ts
+
+| Feature | middleware.ts | proxy.ts |
+|---------|---------------|----------|
+| Runtime | Edge Runtime | Node.js Runtime |
+| Use Case | Auth, redirects | API proxying |
+| Access | Limited APIs | Full Node.js APIs |
+
+### Example proxy.ts
+
+```typescript
+// app/proxy.ts
+import { NextRequest, NextResponse } from 'next/server';
+
+export function GET(request: NextRequest) {
+  const url = request.nextUrl.clone();
+  
+  // Proxy to external API
+  if (url.pathname.startsWith('/api/external')) {
+    return NextResponse.rewrite(
+      new URL('https://api.example.com' + url.pathname)
+    );
+  }
+  
+  return NextResponse.next();
+}
+```
+
 ## Context Providers Pattern
 
 ```typescript
@@ -275,111 +481,34 @@ export default function RootLayout({ children }) {
 
 > **Good to know:** Render providers as deep as possible in the tree. Notice how `ThemeProvider` only wraps `{children}` instead of the entire `<html>` document. This makes it easier for Next.js to optimize the static parts of your Server Components.
 
-## Streaming Metadata (Next.js 15)
+## Parallel Routes Require default.js
 
-Next.js 15 streams metadata separately, allowing visual content to render before metadata resolves:
-
-```typescript
-// app/blog/[slug]/page.tsx
-export async function generateMetadata({ params }) {
-  // This doesn't block UI rendering in Next.js 15
-  const post = await fetchPost(params.slug);
-  return {
-    title: post.title,
-    description: post.excerpt,
-  };
-}
-```
-
-> **Note:** Streaming metadata is disabled for bots/crawlers (Twitterbot, Slackbot, Bingbot) that expect metadata in `<head>`. Customize with `htmlLimitedBots` config.
-
-## Server Actions Configuration
+In Next.js 16, parallel routes require explicit default.js:
 
 ```typescript
-// next.config.js
-module.exports = {
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '2mb',
-      allowedOrigins: ['my-proxy.com', '*.my-proxy.com'],
-    },
-  },
-};
-```
+// ❌ Next.js 15 - fallback UI optional
+app/@modal/page.tsx
 
-## Image Optimization (Next.js 15)
-
-### Local Images with Auto Dimensions
-
-```typescript
-import Image from 'next/image';
-import profilePic from './profile.png';
-
-// Width/height automatically inferred from static import
-<Image src={profilePic} alt="Profile" />
-```
-
-### Remote Images with Required Config
-
-```typescript
-// next.config.ts
-const config = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 's3.amazonaws.com',
-        port: '',
-        pathname: '/my-bucket/**',
-      },
-    ],
-  },
-};
+// ✅ Next.js 16 - explicit default.tsx required
+app/@modal/page.tsx
+app/@modal/default.tsx  // REQUIRED for proper fallback
 ```
 
 ## Route Handlers Caching
 
 ```typescript
 // app/api/data/route.ts
+import { cacheLife, cacheTag } from 'next/cache';
 
-// ❌ NOT CACHED by default
+// ✅ CACHED with "use cache" (Next.js 16)
 export async function GET() {
+  'use cache'
+  cacheLife('hours')
+  cacheTag('api-data')
+  
   const data = await fetch('https://...');
   return Response.json(data);
 }
-
-// ✅ CACHED with config
-export const dynamic = 'force-static';
-
-export async function GET() {
-  const data = await fetch('https://...');
-  return Response.json(data);
-}
-```
-
-## Middleware Best Practices
-
-Middleware is effective for:
-- Quick redirects after reading request
-- Rewriting based on A/B tests
-- Modifying headers
-
-**NOT good for:**
-- Slow data fetching
-- Session management
-
-```typescript
-// middleware.ts
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-
-export function middleware(request: NextRequest) {
-  return NextResponse.redirect(new URL('/home', request.url));
-}
-
-export const config = {
-  matcher: '/about/:path*',
-};
 ```
 
 ## Verification Commands
@@ -406,14 +535,16 @@ curl -s "https://your-site.com" \
 
 ## Common Mistakes to Avoid
 
-1. **Assuming fetch is cached** - In Next.js 15, it's NOT cached by default
-2. **Using `priority` in Client Components** - It won't work as expected
-3. **Wrapping LCP images in Client Component parents** - Breaks preloading
-4. **Not using `getImageProps()` for manual preloads** - Loses srcset/sizes optimization
-5. **Forgetting `fetchPriority="high"` on the actual image** - Preload alone isn't enough
-6. **Using `loading="lazy"` on LCP images** - Defeats the purpose
-7. **Not wrapping dynamic content in Suspense** - Prevents PPR benefits
-8. **Wrapping entire `<html>` in providers** - Prevents static optimization
+1. **Using deprecated route segment configs** - Use `"use cache"` instead of `revalidate`, `dynamic`
+2. **Not awaiting params/searchParams** - All dynamic APIs must be awaited in Next.js 16
+3. **Using `priority` in Client Components** - It won't work as expected
+4. **Wrapping LCP images in Client Component parents** - Breaks preloading
+5. **Not using `getImageProps()` for manual preloads** - Loses srcset/sizes optimization
+6. **Forgetting `fetchPriority="high"` on the actual image** - Preload alone isn't enough
+7. **Using `loading="lazy"` on LCP images** - Defeats the purpose
+8. **Not wrapping dynamic content in Suspense** - Prevents PPR benefits
+9. **Wrapping entire `<html>` in providers** - Prevents static optimization
+10. **Using `unstable_cache`** - Deprecated, use `"use cache"` instead
 
 ## Debugging Checklist
 
@@ -423,15 +554,29 @@ curl -s "https://your-site.com" \
 4. [ ] Does the image have `fetchPriority="high"`?
 5. [ ] Is `loading="eager"` set (not lazy)?
 6. [ ] Are parent components Server Components?
-7. [ ] Is caching explicitly configured for `fetch()` calls?
-8. [ ] Is dynamic content wrapped in `<Suspense>`?
-9. [ ] Are context providers rendered deep, not wrapping `<html>`?
+7. [ ] Is `"use cache"` configured for cached data?
+8. [ ] Are `params` and `searchParams` being awaited?
+9. [ ] Is dynamic content wrapped in `<Suspense>`?
+10. [ ] Are context providers rendered deep, not wrapping `<html>`?
+11. [ ] Is React Compiler enabled for automatic memoization?
+
+## Removed Features in Next.js 16
+
+| Feature | Status | Replacement |
+|---------|--------|-------------|
+| `next lint` | **REMOVED** | Use `eslint` directly |
+| AMP Support | **REMOVED** | No replacement |
+| `next/legacy/image` | **REMOVED** | Use `next/image` |
+| `experimental.ppr` | **REMOVED** | Use `cacheComponents: true` |
+| `images.domains` | **DEPRECATED** | Use `images.remotePatterns` |
+| `unstable_cache` | **DEPRECATED** | Use `"use cache"` directive |
+| `runtime: 'edge'` | **NOT SUPPORTED** | Not compatible with Cache Components |
 
 ## Related Resources
 
-- [Next.js 15 Caching](https://nextjs.org/docs/15/app/getting-started/caching-and-revalidating)
-- [Partial Prerendering](https://nextjs.org/docs/15/app/getting-started/partial-prerendering)
-- [Server and Client Components](https://nextjs.org/docs/15/app/getting-started/server-and-client-components)
-- [Image Optimization](https://nextjs.org/docs/15/app/getting-started/images)
-- [Metadata and OG Images](https://nextjs.org/docs/15/app/getting-started/metadata-and-og-images)
-- [Route Handlers and Middleware](https://nextjs.org/docs/15/app/getting-started/route-handlers-and-middleware)
+- [Next.js 16 Release Blog](https://nextjs.org/blog/next-16)
+- [Cache Components Documentation](https://nextjs.org/docs/app/getting-started/cache-components)
+- [use cache Directive](https://nextjs.org/docs/app/api-reference/directives/use-cache)
+- [Upgrading to Next.js 16](https://nextjs.org/docs/app/guides/upgrading/version-16)
+- [Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)
+- [Image Optimization](https://nextjs.org/docs/app/getting-started/images)

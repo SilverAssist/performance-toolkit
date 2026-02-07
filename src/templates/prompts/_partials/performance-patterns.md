@@ -1,10 +1,11 @@
 # Performance Patterns Partial
 
-Reusable performance optimization patterns for prompts. Updated for **Next.js 15**.
+Reusable performance optimization patterns for prompts. Updated for **Next.js 16**.
 
 ## Usage
 
 Reference in other prompts:
+
 ```markdown
 ## Prerequisites
 - Reference: `.github/prompts/_partials/performance-patterns.md`
@@ -12,14 +13,146 @@ Reference in other prompts:
 
 ---
 
-## Next.js 15 Key Changes
+## Next.js 16 Key Changes
 
-> ⚠️ **Breaking Changes in Next.js 15:**
-> - `fetch()` is NOT cached by default (opt-in with `cache: 'force-cache'`)
-> - Partial Prerendering (PPR) available as experimental feature
-> - `use cache` directive for granular caching control
-> - Streaming metadata for improved perceived performance
-> - React 19 features including `use()` hook
+> ⚠️ **Breaking Changes in Next.js 16:**
+>
+> - **Cache Components** with `"use cache"` directive (replaces route segment configs)
+> - **Turbopack** is now the default bundler (2-5x faster builds)
+> - **Async Dynamic APIs** - `params`, `searchParams`, `cookies()`, `headers()` must be awaited
+> - **Node.js 20.9+** required
+> - **React 19.2** with View Transitions and Activity component
+> - **React Compiler** for automatic memoization
+> - **Image defaults changed** - 4 hour cache, quality 75
+
+---
+
+## Cache Components & "use cache" Directive
+
+### Enabling Cache Components
+
+```typescript
+// next.config.ts
+import type { NextConfig } from 'next';
+
+const config: NextConfig = {
+  cacheComponents: true, // Enables Cache Components (includes PPR by default)
+  reactCompiler: true,   // Automatic memoization
+};
+
+export default config;
+```
+
+### Using "use cache" Directive
+
+```typescript
+import { cacheLife, cacheTag } from 'next/cache';
+
+// File-level caching
+'use cache'
+
+export default async function Page() {
+  cacheLife('hours');
+  cacheTag('products');
+  const data = await fetch('/api/data');
+  return <div>{data}</div>;
+}
+
+// Component-level caching
+async function BlogPosts() {
+  'use cache'
+  cacheLife('hours')
+  const posts = await fetch('/api/posts');
+  return <ul>{posts.map(p => <li key={p.id}>{p.title}</li>)}</ul>;
+}
+
+// Function-level caching
+async function getData() {
+  'use cache'
+  cacheLife('days')
+  return fetch('/api/data');
+}
+```
+
+### Cache Profiles (Built-in)
+
+| Profile | Use Case |
+|---------|----------|
+| `'seconds'` | Very short cache |
+| `'minutes'` | Short cache |
+| `'hours'` | Medium cache (recommended default) |
+| `'days'` | Long cache |
+| `'weeks'` | Very long cache |
+| `'max'` | Maximum cache duration |
+
+### Cache Revalidation
+
+```typescript
+import { cacheTag, updateTag, revalidateTag } from 'next/cache';
+
+async function getProduct(id: string) {
+  'use cache'
+  cacheTag(`product-${id}`)
+  cacheLife('hours')
+  return fetch(`/api/products/${id}`);
+}
+
+// In Server Action - immediate invalidation
+async function updateProduct(id: string, formData: FormData) {
+  'use server'
+  await db.products.update(id, formData);
+  updateTag(`product-${id}`); // Immediately invalidates and refreshes
+}
+```
+
+### Migration from Next.js 15 Patterns
+
+```typescript
+// ❌ Next.js 15 (deprecated with cacheComponents)
+export const dynamic = 'force-static';
+export const revalidate = 3600;
+export const fetchCache = 'force-cache';
+
+export default async function Page() {
+  const data = await fetch('/api/data', { cache: 'force-cache' });
+  return <div>{data}</div>;
+}
+
+// ✅ Next.js 16 with Cache Components
+import { cacheLife } from 'next/cache';
+
+export default async function Page() {
+  'use cache'
+  cacheLife('hours')
+  const data = await fetch('/api/data');
+  return <div>{data}</div>;
+}
+```
+
+---
+
+## Async Dynamic APIs (Breaking Change)
+
+All dynamic APIs must now be awaited in Next.js 16:
+
+```typescript
+// ❌ Next.js 15 (broken in Next.js 16)
+export default function Page({ params, searchParams }) {
+  const { slug } = params;
+  const { q } = searchParams;
+}
+
+// ✅ Next.js 16
+export default async function Page({ params, searchParams }) {
+  const { slug } = await params;
+  const { q } = await searchParams;
+}
+
+// Also applies to:
+const cookieStore = await cookies();
+const headersList = await headers();
+const { isEnabled } = await draftMode();
+```
 
 ---
 
@@ -80,6 +213,34 @@ import Image from 'next/image';
 </div>
 ```
 
+### Next.js 16 Image Defaults
+
+```typescript
+// next.config.ts - New defaults in Next.js 16
+const nextConfig = {
+  images: {
+    minimumCacheTTL: 14400,     // 4 hours (was 60 seconds)
+    quality: [75],              // Coerced to single value
+    // Required for localhost image sources
+    dangerouslyAllowLocalIP: true,
+  },
+};
+
+// Migration from images.domains (deprecated)
+images: {
+  // ❌ Deprecated
+  domains: ['example.com'],
+  
+  // ✅ Use remotePatterns
+  remotePatterns: [
+    {
+      protocol: 'https',
+      hostname: 'example.com',
+    },
+  ],
+}
+```
+
 ### LCP Preload Pattern (Next.js App Router)
 
 > **Why this is needed**: When your LCP image is in a Client Component or streamed component,
@@ -92,7 +253,8 @@ import { getImageProps } from "next/image";
 import { preload } from "react-dom";
 
 export default async function Layout({ children, params }) {
-  const data = await fetchData(params);
+  const resolvedParams = await params; // Next.js 16: await params
+  const data = await fetchData(resolvedParams);
   const lcpImage = data.heroImageUrl;
 
   if (lcpImage) {
@@ -471,189 +633,79 @@ export default function RootLayout({ children }) {
 
 ---
 
-## Caching Patterns
+## React Compiler (Next.js 16)
 
-### Next.js 15 Fetch Caching
+React Compiler is now stable in Next.js 16, eliminating the need for manual memoization.
 
-> ⚠️ **Breaking Change**: In Next.js 15, `fetch()` is NOT cached by default.
-> You must explicitly opt-in to caching.
-
-```typescript
-// ❌ NOT CACHED in Next.js 15 (default behavior changed!)
-const data = await fetch('https://api.example.com/data');
-
-// ✅ CACHED - opt-in with force-cache
-const data = await fetch('https://api.example.com/data', {
-  cache: 'force-cache'
-});
-
-// ✅ TIME-BASED REVALIDATION
-const data = await fetch('https://api.example.com/data', {
-  next: { revalidate: 3600 } // Revalidate every hour
-});
-
-// ✅ TAG-BASED REVALIDATION
-const data = await fetch('https://api.example.com/data', {
-  next: { tags: ['products'] }
-});
-// Invalidate with: revalidateTag('products')
-```
-
-### Using unstable_cache for Non-Fetch Operations
-
-```typescript
-import { unstable_cache } from 'next/cache';
-
-const getCachedUser = unstable_cache(
-  async (userId: string) => {
-    return db.query.users.findFirst({ where: eq(users.id, userId) });
-  },
-  ['user-cache'], // cache key prefix
-  { 
-    revalidate: 3600,
-    tags: ['users']
-  }
-);
-```
-
-### The 'use cache' Directive (Next.js 15 Experimental)
-
-```typescript
-// Enable in next.config.ts
-const config = {
-  experimental: {
-    dynamicIO: true,
-  },
-};
-
-// Use in components or functions
-async function getData() {
-  'use cache';
-  const response = await fetch('https://api.example.com/data');
-  return response.json();
-}
-
-// With cache lifetime configuration
-async function getCachedData() {
-  'use cache';
-  cacheLife('hours'); // 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks' | 'max'
-  return fetchExpensiveData();
-}
-```
-
-### Next.js Cache Headers
-
-```typescript
-// next.config.js
-module.exports = {
-  async headers() {
-    return [
-      {
-        source: '/static/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=3600, stale-while-revalidate=86400',
-          },
-        ],
-      },
-    ];
-  },
-};
-```
-
-### Route Handler Caching (Next.js 15)
-
-```typescript
-// app/api/data/route.ts
-// ❌ NOT CACHED by default
-export async function GET() {
-  const data = await fetch('https://...');
-  return Response.json(data);
-}
-
-// ✅ CACHED with config
-export const dynamic = 'force-static';
-
-export async function GET() {
-  const data = await fetch('https://...');
-  return Response.json(data);
-}
-```
-
----
-
-## Partial Prerendering (PPR) Patterns
-
-> PPR allows combining static and dynamic content in the same route for optimal performance.
-
-### Enabling PPR
+### Enabling React Compiler
 
 ```typescript
 // next.config.ts
-import type { NextConfig } from 'next';
-
-const config: NextConfig = {
-  experimental: {
-    ppr: 'incremental', // Enable PPR incrementally per-route
-  },
+const nextConfig = {
+  reactCompiler: true,
 };
-
-export default config;
 ```
 
-### Using PPR in Routes
+### What It Replaces
 
 ```typescript
-// app/dashboard/layout.tsx
-export const experimental_ppr = true;
+// ❌ No longer needed with React Compiler
+const memoizedValue = useMemo(() => computeExpensive(a, b), [a, b]);
+const memoizedCallback = useCallback(() => doSomething(a, b), [a, b]);
+const MemoizedComponent = memo(MyComponent);
 
-export default function Layout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
-}
+// ✅ Just write normal code - compiler optimizes automatically
+const value = computeExpensive(a, b);
+const callback = () => doSomething(a, b);
+function MyComponent() { ... }
 ```
 
-```typescript
-// app/dashboard/page.tsx
-import { Suspense } from 'react';
+### Performance Benefits
 
-export default function Page() {
+- Eliminates manual memoization errors (missing dependencies)
+- Reduces bundle size (no memoization wrapper code)
+- Automatically optimizes re-renders
+
+---
+
+## View Transitions (React 19.2)
+
+View Transitions enable smooth page transitions without layout shifts.
+
+### Enabling View Transitions
+
+```typescript
+// next.config.ts
+const nextConfig = {
+  viewTransition: true,
+};
+```
+
+### Using View Transitions
+
+```typescript
+import { useViewTransition } from 'react';
+
+function Component() {
+  const [isPending, startViewTransition] = useViewTransition();
+  
   return (
-    <>
-      {/* Static shell - prerendered at build time */}
-      <StaticHeader />
-      <StaticSidebar />
-      
-      {/* Dynamic content - streamed at request time */}
-      <Suspense fallback={<DashboardSkeleton />}>
-        <DynamicDashboard />
-      </Suspense>
-    </>
+    <button onClick={() => startViewTransition(() => {
+      setShowDetails(true);
+    })}>
+      {isPending ? 'Loading...' : 'Show Details'}
+    </button>
   );
 }
 ```
 
-### What Makes Components Dynamic
+### CLS Impact
 
-A component becomes dynamic when it uses:
-- `cookies()` or `headers()`
-- `connection()` or `draftMode()`
-- `searchParams` prop
-- `unstable_noStore()`
-- `fetch()` with `{ cache: 'no-store' }`
+View Transitions help prevent CLS by maintaining visual stability during navigation.
 
 ---
 
-## Context Providers Pattern (Next.js 15)
+## Context Providers Pattern (Next.js 16)
 
 > **Good to know:** Render providers as deep as possible in the tree to optimize static parts.
 
@@ -682,103 +734,52 @@ export default function RootLayout({ children }) {
 
 ---
 
-## Streaming Metadata (Next.js 15)
-
-Next.js 15 streams metadata separately, allowing visual content to render before metadata resolves:
+## Route Handlers Caching (Next.js 16)
 
 ```typescript
-// app/blog/[slug]/page.tsx
-export async function generateMetadata({ params }) {
-  // This doesn't block UI rendering in Next.js 15
-  const post = await fetchPost(params.slug);
-  return {
-    title: post.title,
-    description: post.excerpt,
-  };
+// app/api/data/route.ts
+import { cacheLife, cacheTag } from 'next/cache';
+
+// ✅ CACHED with "use cache" (Next.js 16)
+export async function GET() {
+  'use cache'
+  cacheLife('hours')
+  cacheTag('api-data')
+  
+  const data = await fetch('https://...');
+  return Response.json(data);
 }
 ```
 
-> **Note:** Streaming metadata is disabled for bots/crawlers (Twitterbot, Slackbot, Bingbot).
-
 ---
 
-## Server Actions Configuration (Next.js 15)
+## proxy.ts (New File Convention)
+
+New file convention for request proxying with Node.js runtime.
+
+### middleware.ts vs proxy.ts
+
+| Feature | middleware.ts | proxy.ts |
+|---------|---------------|----------|
+| Runtime | Edge Runtime | Node.js Runtime |
+| Use Case | Auth, redirects | API proxying |
+| Access | Limited APIs | Full Node.js APIs |
 
 ```typescript
-// next.config.js
-module.exports = {
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '2mb',
-      allowedOrigins: ['my-proxy.com', '*.my-proxy.com'],
-    },
-  },
-};
-```
+// app/proxy.ts
+import { NextRequest, NextResponse } from 'next/server';
 
----
-
-## Middleware Best Practices
-
-Middleware is effective for:
-- Quick redirects after reading request
-- Rewriting based on A/B tests
-- Modifying headers
-
-**NOT good for:**
-- Slow data fetching
-- Session management
-
-```typescript
-// middleware.ts
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-
-export function middleware(request: NextRequest) {
-  return NextResponse.redirect(new URL('/home', request.url));
+export function GET(request: NextRequest) {
+  const url = request.nextUrl.clone();
+  
+  if (url.pathname.startsWith('/api/external')) {
+    return NextResponse.rewrite(
+      new URL('https://api.example.com' + url.pathname)
+    );
+  }
+  
+  return NextResponse.next();
 }
-
-export const config = {
-  matcher: '/about/:path*',
-};
-```
-
----
-
-## Preloading Patterns
-
-### Resource Hints
-
-```html
-<head>
-  <!-- Preconnect to critical origins -->
-  <link rel="preconnect" href="https://api.example.com" />
-  <link rel="preconnect" href="https://cdn.example.com" crossorigin />
-  
-  <!-- DNS prefetch for less critical origins -->
-  <link rel="dns-prefetch" href="https://analytics.example.com" />
-  
-  <!-- Preload LCP image -->
-  <link 
-    rel="preload" 
-    href="/hero.webp" 
-    as="image"
-    type="image/webp"
-    fetchpriority="high"
-  />
-  
-  <!-- Preload critical font -->
-  <link 
-    rel="preload" 
-    href="/fonts/inter.woff2" 
-    as="font" 
-    type="font/woff2"
-    crossorigin
-  />
-  
-  <!-- Preload critical script -->
-  <link rel="modulepreload" href="/critical-module.js" />
-</head>
 ```
 
 ---
@@ -835,6 +836,44 @@ export const config = {
   width: 200px;
   height: 100px;
 }
+```
+
+---
+
+## Preloading Patterns
+
+### Resource Hints
+
+```html
+<head>
+  <!-- Preconnect to critical origins -->
+  <link rel="preconnect" href="https://api.example.com" />
+  <link rel="preconnect" href="https://cdn.example.com" crossorigin />
+  
+  <!-- DNS prefetch for less critical origins -->
+  <link rel="dns-prefetch" href="https://analytics.example.com" />
+  
+  <!-- Preload LCP image -->
+  <link 
+    rel="preload" 
+    href="/hero.webp" 
+    as="image"
+    type="image/webp"
+    fetchpriority="high"
+  />
+  
+  <!-- Preload critical font -->
+  <link 
+    rel="preload" 
+    href="/fonts/inter.woff2" 
+    as="font" 
+    type="font/woff2"
+    crossorigin
+  />
+  
+  <!-- Preload critical script -->
+  <link rel="modulepreload" href="/critical-module.js" />
+</head>
 ```
 
 ---

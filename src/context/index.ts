@@ -188,6 +188,13 @@ export class ProjectContextDetector {
       features.push("mdx");
     }
 
+    // Next.js 16 features (detected from config would be ideal, but we mark by version)
+    if (majorVersion >= 16) {
+      features.push("cache-components");
+      features.push("turbopack");
+      features.push("react-compiler");
+    }
+
     // Determine router type (app router available since Next 13.4+)
     // This is a heuristic - actual detection would require file system check
     const routerType: "app" | "pages" = majorVersion >= 14 ? "app" : "pages";
@@ -302,12 +309,15 @@ export class ProjectContextDetector {
    * Detects build tool
    */
   private detectBuildTool(): ProjectContext["buildTool"] {
-    // Turbopack (Next.js 13+)
+    // Turbopack (Next.js 16+ default, 13-15 optional)
     if (this.hasDependency("next")) {
       const version = this.getDependencyVersion("next");
-      if (version && this.parseMajorVersion(version) >= 13) {
-        // Could be turbopack, but webpack is still default
-        // Would need next.config.js analysis
+      if (version) {
+        const majorVersion = this.parseMajorVersion(version);
+        // Next.js 16+ uses Turbopack by default
+        if (majorVersion >= 16) {
+          return "turbopack";
+        }
       }
     }
 
@@ -318,7 +328,7 @@ export class ProjectContextDetector {
       return "rollup";
     if (this.hasDependency("webpack")) return "webpack";
 
-    // Next.js uses webpack by default
+    // Next.js < 16 uses webpack by default
     if (this.hasDependency("next")) return "webpack";
 
     return null;
