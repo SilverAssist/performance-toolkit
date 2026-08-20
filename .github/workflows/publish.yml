@@ -10,13 +10,18 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      # Lets the runner mint the OIDC token npm exchanges for publish rights.
+      id-token: write
     steps:
       - uses: actions/checkout@v7
       
       - uses: actions/setup-node@v7
         with:
-          node-version: '20.x'
+          # Node 24 ships npm 11.x; trusted publishing needs npm >= 11.5.1.
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
+          # npm's trusted-publishing guide: never cache in release builds.
+          package-manager-cache: false
       
       - run: npm ci
       
@@ -26,9 +31,13 @@ jobs:
       
       - run: npm test
       
+      # Recorded so a publish failure can be diagnosed without a re-run.
+      - name: Report npm version
+        run: npm --version
+
+      # No NODE_AUTH_TOKEN: auth is the OIDC token above, exchanged against the
+      # trusted publisher registered for this package on npmjs.com.
       - run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       
       - name: Create summary
         if: success()

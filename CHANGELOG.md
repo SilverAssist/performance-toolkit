@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **npm publishing moved to trusted publishing (OIDC)** ([#68](https://github.com/SilverAssist/performance-toolkit/issues/68)). `publish.yml` no longer reads an `NPM_TOKEN` secret: it requests `id-token: write` and npm exchanges that OIDC token for publish rights against the trusted publisher registered for this package. Long-lived tokens are on a deprecation clock — from January 2027 2FA-bypass granular tokens lose direct publishing entirely. The publish job moves to Node 24 because trusted publishing requires npm >= 11.5.1 and Node 24 ships npm 11.x natively, where Node 22 would need a global npm upgrade step whose effect is not verifiable from the log. Since the repo and package are both public, publishing over OIDC also attests provenance automatically.
+
 ## [0.4.0] - 2026-02-07
 
 ### Changed
