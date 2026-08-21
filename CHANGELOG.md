@@ -7,64 +7,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **All 8 subpath exports were unresolvable in the published `0.4.0`.** `exports["./bundle"].import.default` (and the other 7 subpaths' `import` conditions) pointed at `.mjs` files the tsup build never produced — `publint` reported all 8 as missing. Migrating the build to tsdown (below) is what actually produces the files the `exports` map has declared since `0.4.0`; nothing before this release built them.
+- **`node10` module resolution failed for every subpath** (`pagespeed`, `lighthouse`, `bundle`, `analyzer`, `context`, `report`, `types`) — `node10` has no `exports` support, so consumers on `moduleResolution: "node"` saw no types at all for these paths. Added `typesVersions`, mapping each to its `.d.ts`.
+- `pkg.repository.url` is now a full `git+https://` URL, per `publint`'s suggestion.
+
 ### Changed
 
+- **Replaced tsup with tsdown** ([#72](https://github.com/SilverAssist/performance-toolkit/pull/72)). tsup is unmaintained — its own README recommends tsdown — and its unbounded `typescript: ">=4.5.0"` peer range is what let a TypeScript 7 install crash the DTS build with no warning ([SilverAssist/recaptcha#55](https://github.com/SilverAssist/recaptcha/issues/55)). `fixedExtension: false` preserves the file names the `exports` map already declared.
+- **Node 22 minimum** — tsdown requires `node: ^22.18.0 || >=24.11.0`. `engines` now declares `>=22.0.0`, matching what CI actually runs (previously CI tested Node 20 while `engines` claimed `>=18.0.0`).
 - **npm publishing moved to trusted publishing (OIDC)** ([#68](https://github.com/SilverAssist/performance-toolkit/issues/68)). `publish.yml` no longer reads an `NPM_TOKEN` secret: it requests `id-token: write` and npm exchanges that OIDC token for publish rights against the trusted publisher registered for this package. Long-lived tokens are on a deprecation clock — from January 2027 2FA-bypass granular tokens lose direct publishing entirely. The publish job moves to Node 24 because trusted publishing requires npm >= 11.5.1 and Node 24 ships npm 11.x natively, where Node 22 would need a global npm upgrade step whose effect is not verifiable from the log. Since the repo and package are both public, publishing over OIDC also attests provenance automatically.
+- Standardized the Dependabot auto-merge workflow and added husky pre-commit/pre-push hooks, matching the convention used across the org's other npm packages.
 
 ## [0.4.0] - 2026-02-07
 
 ### Changed
 
 - **Next.js 16 Migration** - Complete update of all skills and prompts for Next.js 16
-  
-  #### Cache Components & "use cache" Directive
 
+  #### Cache Components & "use cache" Directive
   - **Breaking**: Route segment configs (`revalidate`, `dynamic`, `fetchCache`) deprecated with `cacheComponents`
   - New `"use cache"` directive for file, component, and function-level caching
   - `cacheLife()` for cache duration: `'seconds'`, `'minutes'`, `'hours'`, `'days'`, `'weeks'`, `'max'`
   - `cacheTag()` and `updateTag()` for granular cache invalidation
   - `revalidateTag()` now requires cache profile as second argument
-  
-  #### Async Dynamic APIs (Breaking Change)
 
+  #### Async Dynamic APIs (Breaking Change)
   - All dynamic APIs must now be awaited: `params`, `searchParams`, `cookies()`, `headers()`, `draftMode()`
   - Updated all code examples in skills and prompts
-  
-  #### Turbopack (Default Bundler)
 
+  #### Turbopack (Default Bundler)
   - Turbopack is now the default bundler in Next.js 16
   - Added `turbopackFileSystemCache: true` configuration
   - New `next experimental-analyze` command for bundle analysis
   - Context detector now returns `turbopack` as build tool for Next.js 16+
-  
-  #### React 19.2 Features
 
+  #### React 19.2 Features
   - React Compiler for automatic memoization (eliminates manual `useMemo`/`useCallback`)
   - View Transitions for smooth page transitions
   - Activity component for preserved state during navigation
-  
-  #### Image Optimization
 
+  #### Image Optimization
   - Default `minimumCacheTTL` changed to 4 hours (was 60 seconds)
   - Default quality coerced to `[75]`
   - `dangerouslyAllowLocalIP` required for localhost image sources
   - `images.domains` deprecated, use `remotePatterns`
-  
-  #### New Features
 
+  #### New Features
   - `proxy.ts` file convention for Node.js runtime request proxying
   - Parallel routes now require explicit `default.js` for fallback
-  
-  #### Removed Features
 
+  #### Removed Features
   - `next lint` CLI removed (use ESLint directly)
   - AMP support removed
   - `next/legacy/image` removed
   - `experimental.ppr` replaced by `cacheComponents: true`
   - `unstable_cache` deprecated (use `"use cache"`)
-  
-  #### Updated Files
 
+  #### Updated Files
   - `src/templates/skills/nextjs-performance/SKILL.md` - Complete rewrite for Next.js 16
   - `src/templates/prompts/nextjs-performance.prompt.md` - Cache Components patterns
   - `src/templates/prompts/_partials/performance-patterns.md` - All new patterns
@@ -187,7 +188,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `index.ts` - Barrel exports for public API
 
 - **Refactored `bin/cli.js`** - Applied DRY principles to 1350+ line CLI:
-  - Added global constants for colors/emojis (SEVERITY_*, IMPACT_*, STATUS_*, URGENCY_*)
+  - Added global constants for colors/emojis (SEVERITY__, IMPACT__, STATUS__, URGENCY__)
   - Added helper functions: `getSeverityStyle()`, `getImpactStyle()`, `getStatusStyle()`
   - Added print helpers: `printSectionHeader()`, `printSectionFooter()`, `printLabeledValue()`, etc.
   - Refactored all major print functions to use shared helpers
