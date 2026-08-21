@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/SilverAssist/performance-toolkit.git"
+    "url": "git+https://github.com/SilverAssist/performance-toolkit.git"
   },
   "bugs": {
     "url": "https://github.com/SilverAssist/performance-toolkit/issues"
@@ -118,6 +118,31 @@
         "types": "./dist/types/index.d.cts",
         "default": "./dist/types/index.cjs"
       }
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "pagespeed": [
+        "./dist/pagespeed/index.d.ts"
+      ],
+      "lighthouse": [
+        "./dist/lighthouse/index.d.ts"
+      ],
+      "bundle": [
+        "./dist/bundle/index.d.ts"
+      ],
+      "analyzer": [
+        "./dist/analyzer/index.d.ts"
+      ],
+      "context": [
+        "./dist/context/index.d.ts"
+      ],
+      "report": [
+        "./dist/report/index.d.ts"
+      ],
+      "types": [
+        "./dist/types/index.d.ts"
+      ]
     }
   },
   "files": [
