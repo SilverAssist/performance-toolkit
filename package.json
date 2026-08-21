@@ -30,8 +30,8 @@
     "ci-cd",
     "monitoring"
   ],
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
     "perf-check": "./bin/cli.js",
@@ -41,82 +41,82 @@
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/index.d.mts",
-        "default": "./dist/index.mjs"
-      },
-      "require": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
       }
     },
     "./pagespeed": {
       "import": {
-        "types": "./dist/pagespeed/index.d.mts",
-        "default": "./dist/pagespeed/index.mjs"
-      },
-      "require": {
         "types": "./dist/pagespeed/index.d.ts",
         "default": "./dist/pagespeed/index.js"
+      },
+      "require": {
+        "types": "./dist/pagespeed/index.d.cts",
+        "default": "./dist/pagespeed/index.cjs"
       }
     },
     "./lighthouse": {
       "import": {
-        "types": "./dist/lighthouse/index.d.mts",
-        "default": "./dist/lighthouse/index.mjs"
-      },
-      "require": {
         "types": "./dist/lighthouse/index.d.ts",
         "default": "./dist/lighthouse/index.js"
+      },
+      "require": {
+        "types": "./dist/lighthouse/index.d.cts",
+        "default": "./dist/lighthouse/index.cjs"
       }
     },
     "./bundle": {
       "import": {
-        "types": "./dist/bundle/index.d.mts",
-        "default": "./dist/bundle/index.mjs"
-      },
-      "require": {
         "types": "./dist/bundle/index.d.ts",
         "default": "./dist/bundle/index.js"
+      },
+      "require": {
+        "types": "./dist/bundle/index.d.cts",
+        "default": "./dist/bundle/index.cjs"
       }
     },
     "./analyzer": {
       "import": {
-        "types": "./dist/analyzer/index.d.mts",
-        "default": "./dist/analyzer/index.mjs"
-      },
-      "require": {
         "types": "./dist/analyzer/index.d.ts",
         "default": "./dist/analyzer/index.js"
+      },
+      "require": {
+        "types": "./dist/analyzer/index.d.cts",
+        "default": "./dist/analyzer/index.cjs"
       }
     },
     "./context": {
       "import": {
-        "types": "./dist/context/index.d.mts",
-        "default": "./dist/context/index.mjs"
-      },
-      "require": {
         "types": "./dist/context/index.d.ts",
         "default": "./dist/context/index.js"
+      },
+      "require": {
+        "types": "./dist/context/index.d.cts",
+        "default": "./dist/context/index.cjs"
       }
     },
     "./report": {
       "import": {
-        "types": "./dist/report/index.d.mts",
-        "default": "./dist/report/index.mjs"
-      },
-      "require": {
         "types": "./dist/report/index.d.ts",
         "default": "./dist/report/index.js"
+      },
+      "require": {
+        "types": "./dist/report/index.d.cts",
+        "default": "./dist/report/index.cjs"
       }
     },
     "./types": {
       "import": {
-        "types": "./dist/types/index.d.mts",
-        "default": "./dist/types/index.mjs"
-      },
-      "require": {
         "types": "./dist/types/index.d.ts",
         "default": "./dist/types/index.js"
+      },
+      "require": {
+        "types": "./dist/types/index.d.cts",
+        "default": "./dist/types/index.cjs"
       }
     }
   },
@@ -131,7 +131,7 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "tsup",
+    "build": "tsdown",
     "build:watch": "tsup --watch",
     "clean": "rm -rf dist",
     "dev": "tsup --watch",
@@ -172,11 +172,11 @@
     "jest": "^30.2.0",
     "prettier": "^3.8.1",
     "ts-jest": "^29.4.6",
-    "tsup": "^8.5.1",
+    "tsdown": "^0.22.14",
     "typescript": "^6.0.2",
     "typescript-eslint": "^8.54.0"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   }
 }
