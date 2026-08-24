@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2026-08-24
+
+### Fixed
+
+- **Dependabot security alerts on dev-only transitive deps of `@lhci/cli`** — js-yaml (two live resolutions, 4.3.0 via eslint and 3.14.2 via `@lhci/utils`/istanbul: overridden each within its own major line), qs 6.14.2 (via express): patched at 6.15.2, and `@babel/core` (resolved via `npm audit fix`). None are shipped in the published package.
+  - Left unresolved: extract-zip, puppeteer-core, lighthouse, uuid, and express's other advisories — all bundled inside `@lhci/cli`'s own tree with no independent fix path (npm's only suggestion is downgrading `@lhci/cli` five majors, which isn't a real fix). Tracked as an upstream gap, not ours to close.
+
+### Changed
+
+- Normalized the `license` field to its SPDX identifier.
+
 ## [0.5.0] - 2026-08-21
 
 ### Fixed
