@@ -4,9 +4,7 @@
  * PageSpeed Insights and Lighthouse CI integration for performance monitoring
  * across SilverAssist projects (FamilyAssets, CareConnect, AgingAdvocate, OSA).
  *
- * @module @silverassist/performance-toolkit
- * @author Miguel Colmenares <me@miguelcolmenares.com>
- * @license PolyForm-Noncommercial-1.0.0
+ * @packageDocumentation
  * @see {@link https://github.com/SilverAssist/performance-toolkit}
  *
  * @example PageSpeed API usage

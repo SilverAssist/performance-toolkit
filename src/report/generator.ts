@@ -3,9 +3,7 @@
  *
  * Main report generator orchestrating report generation.
  *
- * @module report/generator
- * @author Miguel Colmenares <me@miguelcolmenares.com>
- * @license PolyForm-Noncommercial-1.0.0
+ * @packageDocumentation
  */
 
 import type {

@@ -3,9 +3,7 @@
  *
  * PageSpeed Insights API v5 type definitions.
  *
- * @module types/pagespeed
- * @author Miguel Colmenares <me@miguelcolmenares.com>
- * @license PolyForm-Noncommercial-1.0.0
+ * @packageDocumentation
  */
 
 // =============================================================================
@@ -21,10 +19,7 @@ export type Strategy = "mobile" | "desktop";
  * PageSpeed analysis category
  */
 export type Category =
-  | "performance"
-  | "accessibility"
-  | "best-practices"
-  | "seo";
+  "performance" | "accessibility" | "best-practices" | "seo";
 
 // =============================================================================
 // Request Types
@@ -158,12 +153,7 @@ export interface LighthouseAudit {
   score: number | null;
   /** Score display mode */
   scoreDisplayMode:
-    | "numeric"
-    | "binary"
-    | "informative"
-    | "notApplicable"
-    | "manual"
-    | "error";
+    "numeric" | "binary" | "informative" | "notApplicable" | "manual" | "error";
   /** Display value (e.g., "2.5 s") */
   displayValue?: string;
   /** Numeric value */

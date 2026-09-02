@@ -3,9 +3,7 @@
  *
  * PageSpeed utility functions for data extraction and formatting.
  *
- * @module pagespeed/utils
- * @author Miguel Colmenares <me@miguelcolmenares.com>
- * @license PolyForm-Noncommercial-1.0.0
+ * @packageDocumentation
  */
 
 import { THIRD_PARTY_PATTERNS } from "./constants";

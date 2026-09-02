@@ -3,9 +3,7 @@
  *
  * Project context and framework detection type definitions.
  *
- * @module types/context
- * @author Miguel Colmenares <me@miguelcolmenares.com>
- * @license PolyForm-Noncommercial-1.0.0
+ * @packageDocumentation
  */
 
 // =============================================================================

@@ -3,9 +3,7 @@
  *
  * PageSpeed data extractors for scores, metrics, opportunities, and diagnostics.
  *
- * @module pagespeed/extractors
- * @author Miguel Colmenares <me@miguelcolmenares.com>
- * @license PolyForm-Noncommercial-1.0.0
+ * @packageDocumentation
  */
 
 import type {

@@ -3,9 +3,7 @@
  *
  * PageSpeed module - API client and utilities for PageSpeed Insights.
  *
- * @module pagespeed
- * @author Miguel Colmenares <me@miguelcolmenares.com>
- * @license PolyForm-Noncommercial-1.0.0
+ * @packageDocumentation
  */
 
 // Main client

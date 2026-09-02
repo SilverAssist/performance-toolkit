@@ -3,9 +3,7 @@
  *
  * Bundle analysis type definitions.
  *
- * @module types/bundle
- * @author Miguel Colmenares <me@miguelcolmenares.com>
- * @license PolyForm-Noncommercial-1.0.0
+ * @packageDocumentation
  */
 
 /**
@@ -14,7 +12,7 @@
 export interface BundleAnalyzerOptions {
   /** Path to Next.js project directory */
   projectPath?: string;
-  /** Whether to install @next/bundle-analyzer if missing */
+  /** Whether to install `@next/bundle-analyzer` if missing */
   autoInstall?: boolean;
 }
 
@@ -26,7 +24,7 @@ export interface BundleAnalysisResult {
   success: boolean;
   /** Path to the project analyzed */
   projectPath: string;
-  /** Whether @next/bundle-analyzer was installed */
+  /** Whether `@next/bundle-analyzer` was installed */
   installedAnalyzer: boolean;
   /** Generated report paths */
   reports?: {

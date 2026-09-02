@@ -3,9 +3,7 @@
  *
  * Lighthouse CI type definitions.
  *
- * @module types/lighthouse
- * @author Miguel Colmenares <me@miguelcolmenares.com>
- * @license PolyForm-Noncommercial-1.0.0
+ * @packageDocumentation
  */
 
 import type { Strategy } from "../pagespeed";

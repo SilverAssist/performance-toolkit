@@ -3,9 +3,7 @@
  *
  * Export pattern analyzer type definitions.
  *
- * @module types/analyzer
- * @author Miguel Colmenares <me@miguelcolmenares.com>
- * @license PolyForm-Noncommercial-1.0.0
+ * @packageDocumentation
  */
 
 // =============================================================================
@@ -140,10 +138,7 @@ export interface ExportRecommendation {
   priority: "high" | "medium" | "low";
   /** Category of recommendation */
   category:
-    | "barrel-files"
-    | "default-exports"
-    | "config-optimization"
-    | "general";
+    "barrel-files" | "default-exports" | "config-optimization" | "general";
   /** Title */
   title: string;
   /** Detailed description */
