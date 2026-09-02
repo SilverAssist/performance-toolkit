@@ -3,9 +3,7 @@
  *
  * LCP analysis and framework-specific recommendations.
  *
- * @module report/lcp
- * @author Miguel Colmenares <me@miguelcolmenares.com>
- * @license PolyForm-Noncommercial-1.0.0
+ * @packageDocumentation
  */
 
 import type {

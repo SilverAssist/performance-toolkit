@@ -3,9 +3,7 @@
  *
  * Key opportunities generation with framework-specific guidance.
  *
- * @module report/opportunities
- * @author Miguel Colmenares <me@miguelcolmenares.com>
- * @license PolyForm-Noncommercial-1.0.0
+ * @packageDocumentation
  */
 
 import type {

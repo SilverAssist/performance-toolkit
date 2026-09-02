@@ -3,9 +3,7 @@
  *
  * Report module - actionable report generation with framework-aware recommendations.
  *
- * @module report
- * @author Miguel Colmenares <me@miguelcolmenares.com>
- * @license PolyForm-Noncommercial-1.0.0
+ * @packageDocumentation
  */
 
 // Main generator class

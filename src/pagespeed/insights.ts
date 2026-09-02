@@ -3,9 +3,7 @@
  *
  * Detailed insights extractors for AI agents and actionable data.
  *
- * @module pagespeed/insights
- * @author Miguel Colmenares <me@miguelcolmenares.com>
- * @license PolyForm-Noncommercial-1.0.0
+ * @packageDocumentation
  */
 
 import type {
@@ -137,8 +135,7 @@ export function extractImageIssues(audits: LighthouseAudits): ImageIssue[] {
         issueType: "format",
         recommendation: "Convert to WebP or AVIF format",
         snippet: (item.node as Record<string, unknown>)?.snippet as
-          | string
-          | undefined,
+          string | undefined,
       });
     }
   }
@@ -159,8 +156,7 @@ export function extractImageIssues(audits: LighthouseAudits): ImageIssue[] {
         issueType: "oversized",
         recommendation: "Serve properly sized images for viewport",
         snippet: (item.node as Record<string, unknown>)?.snippet as
-          | string
-          | undefined,
+          string | undefined,
       });
     }
   }
@@ -181,8 +177,7 @@ export function extractImageIssues(audits: LighthouseAudits): ImageIssue[] {
         issueType: "offscreen",
         recommendation: "Lazy-load offscreen images with loading='lazy'",
         snippet: (item.node as Record<string, unknown>)?.snippet as
-          | string
-          | undefined,
+          string | undefined,
       });
     }
   }
@@ -203,8 +198,7 @@ export function extractImageIssues(audits: LighthouseAudits): ImageIssue[] {
         issueType: "unoptimized",
         recommendation: "Compress image or use better optimization",
         snippet: (item.node as Record<string, unknown>)?.snippet as
-          | string
-          | undefined,
+          string | undefined,
       });
     }
   }
@@ -264,8 +258,7 @@ export function extractLegacyJavaScript(
     if (!url) continue;
 
     const subItems = item.subItems as
-      | { items?: Array<{ signal?: string }> }
-      | undefined;
+      { items?: Array<{ signal?: string }> } | undefined;
     const polyfills: string[] = [];
 
     if (subItems?.items) {
@@ -306,8 +299,7 @@ export function extractThirdParties(
 
     // Get URLs from subItems
     const subItems = item.subItems as
-      | { items?: Array<{ url?: string }> }
-      | undefined;
+      { items?: Array<{ url?: string }> } | undefined;
     const urls: string[] = [];
     if (subItems?.items) {
       for (const sub of subItems.items) {

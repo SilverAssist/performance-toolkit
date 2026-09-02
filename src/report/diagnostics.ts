@@ -3,9 +3,7 @@
  *
  * Diagnostics table generation similar to PageSpeed Insights.
  *
- * @module report/diagnostics
- * @author Miguel Colmenares <me@miguelcolmenares.com>
- * @license PolyForm-Noncommercial-1.0.0
+ * @packageDocumentation
  */
 
 import type { DiagnosticItem, PerformanceResult } from "../types";

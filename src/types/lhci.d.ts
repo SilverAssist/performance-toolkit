@@ -3,9 +3,7 @@
  *
  * Type declarations for @lhci/cli (no bundled types).
  *
- * @module types/lhci
- * @author Miguel Colmenares <me@miguelcolmenares.com>
- * @license PolyForm-Noncommercial-1.0.0
+ * @packageDocumentation
  */
 
 declare module "@lhci/cli" {

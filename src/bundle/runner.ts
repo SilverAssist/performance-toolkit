@@ -1,11 +1,9 @@
 /**
  * @silverassist/performance-toolkit
  *
- * Bundle analyzer for Next.js applications using @next/bundle-analyzer.
+ * Bundle analyzer for Next.js applications using `@next/bundle-analyzer`.
  *
- * @module bundle/runner
- * @author Miguel Colmenares <me@miguelcolmenares.com>
- * @license PolyForm-Noncommercial-1.0.0
+ * @packageDocumentation
  */
 
 import fs from "fs";
@@ -23,7 +21,7 @@ const execAsync = promisify(exec);
 type PackageManager = "npm" | "yarn" | "pnpm";
 
 /**
- * Runner for Next.js bundle analysis using @next/bundle-analyzer
+ * Runner for Next.js bundle analysis using `@next/bundle-analyzer`
  */
 export class BundleAnalyzerRunner {
   private projectPath: string;
@@ -84,7 +82,7 @@ export class BundleAnalyzerRunner {
   }
 
   /**
-   * Check if @next/bundle-analyzer is installed
+   * Check if `@next/bundle-analyzer` is installed
    */
   private isAnalyzerInstalled(): boolean {
     const packageJsonPath = path.join(this.projectPath, "package.json");
@@ -128,7 +126,7 @@ export class BundleAnalyzerRunner {
   }
 
   /**
-   * Install @next/bundle-analyzer
+   * Install `@next/bundle-analyzer`
    */
   private async installAnalyzer(): Promise<boolean> {
     try {

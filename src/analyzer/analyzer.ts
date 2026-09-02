@@ -3,9 +3,7 @@
  *
  * Export pattern analyzer for Next.js tree-shaking optimization.
  *
- * @module analyzer/analyzer
- * @author Miguel Colmenares <me@miguelcolmenares.com>
- * @license PolyForm-Noncommercial-1.0.0
+ * @packageDocumentation
  */
 
 import type {

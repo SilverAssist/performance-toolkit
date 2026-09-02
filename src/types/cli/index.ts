@@ -3,9 +3,7 @@
  *
  * CLI options and result type definitions.
  *
- * @module types/cli
- * @author Miguel Colmenares <me@miguelcolmenares.com>
- * @license PolyForm-Noncommercial-1.0.0
+ * @packageDocumentation
  */
 
 import type { Strategy, Category } from "../pagespeed";
