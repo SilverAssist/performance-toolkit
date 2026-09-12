@@ -178,6 +178,7 @@ export class LighthouseRunner {
         throw new Error(
           "Lighthouse CI (@lhci/cli) is not installed. " +
             "Install it with: npm install -D @lhci/cli",
+          { cause: error },
         );
       }
       throw error;
