@@ -175,12 +175,11 @@ export class LighthouseRunner {
       return result.success ? 0 : 1;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === "MODULE_NOT_FOUND") {
-        const notInstalledError = new Error(
+        throw new Error(
           "Lighthouse CI (@lhci/cli) is not installed. " +
             "Install it with: npm install -D @lhci/cli",
+          { cause: error },
         );
-        (notInstalledError as Error & { cause?: unknown }).cause = error;
-        throw notInstalledError;
       }
       throw error;
     }
