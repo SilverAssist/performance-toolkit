@@ -33,11 +33,7 @@
  */
 
 // PageSpeed Insights exports
-export {
-  PageSpeedClient,
-  createPageSpeedClient,
-  analyzeUrl,
-} from "./pagespeed";
+export { PageSpeedClient, createPageSpeedClient, analyzeUrl } from "./pagespeed";
 
 // Lighthouse CI exports
 export {
@@ -49,11 +45,7 @@ export {
 } from "./lighthouse";
 
 // Project Context Detection exports
-export {
-  ProjectContextDetector,
-  createContextDetector,
-  detectProjectContext,
-} from "./context";
+export { ProjectContextDetector, createContextDetector, detectProjectContext } from "./context";
 
 // Actionable Report Generation exports
 export {
@@ -63,18 +55,10 @@ export {
 } from "./report";
 
 // Bundle Analysis exports
-export {
-  BundleAnalyzerRunner,
-  createBundleAnalyzer,
-  analyzeBundle,
-} from "./bundle";
+export { BundleAnalyzerRunner, createBundleAnalyzer, analyzeBundle } from "./bundle";
 
 // Export Pattern Analyzer exports
-export {
-  ExportAnalyzer,
-  createExportAnalyzer,
-  analyzeExports,
-} from "./analyzer";
+export { ExportAnalyzer, createExportAnalyzer, analyzeExports } from "./analyzer";
 
 // Type exports
 export type {

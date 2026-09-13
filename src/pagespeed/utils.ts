@@ -49,28 +49,14 @@ export function extractEntityFromUrl(url: string): string | undefined {
  */
 export function categorizeThirdParty(entity: string): string {
   const lower = entity.toLowerCase();
-  if (lower.includes("analytics") || lower.includes("tag manager"))
-    return "analytics";
-  if (
-    lower.includes("facebook") ||
-    lower.includes("twitter") ||
-    lower.includes("linkedin")
-  )
+  if (lower.includes("analytics") || lower.includes("tag manager")) return "analytics";
+  if (lower.includes("facebook") || lower.includes("twitter") || lower.includes("linkedin"))
     return "social";
-  if (lower.includes("ad") || lower.includes("doubleclick"))
-    return "advertising";
-  if (
-    lower.includes("cdn") ||
-    lower.includes("cloudflare") ||
-    lower.includes("cloudfront")
-  )
+  if (lower.includes("ad") || lower.includes("doubleclick")) return "advertising";
+  if (lower.includes("cdn") || lower.includes("cloudflare") || lower.includes("cloudfront"))
     return "cdn";
   if (lower.includes("font")) return "fonts";
-  if (
-    lower.includes("trustedform") ||
-    lower.includes("leadid") ||
-    lower.includes("jornaya")
-  )
+  if (lower.includes("trustedform") || lower.includes("leadid") || lower.includes("jornaya"))
     return "lead-tracking";
   return "other";
 }

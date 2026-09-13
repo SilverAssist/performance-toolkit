@@ -66,13 +66,7 @@ export interface ProjectContext {
   uiLibrary?: string;
   /** CSS solution detected */
   cssSolution?:
-    | "tailwind"
-    | "css-modules"
-    | "styled-components"
-    | "emotion"
-    | "sass"
-    | "vanilla"
-    | null;
+    "tailwind" | "css-modules" | "styled-components" | "emotion" | "sass" | "vanilla" | null;
   /** TypeScript enabled */
   isTypeScript: boolean;
   /** Image optimization library */

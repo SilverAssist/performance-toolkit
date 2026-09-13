@@ -7,11 +7,7 @@
  * @packageDocumentation
  */
 
-export {
-  BundleAnalyzerRunner,
-  createBundleAnalyzer,
-  analyzeBundle,
-} from "./runner";
+export { BundleAnalyzerRunner, createBundleAnalyzer, analyzeBundle } from "./runner";
 
 export type {
   BundleAnalyzerOptions,

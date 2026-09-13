@@ -51,11 +51,7 @@ export interface FileExportInfo {
  */
 export interface ExportIssue {
   /** Issue type */
-  type:
-    | "default-in-barrel"
-    | "default-reexport"
-    | "mixed-exports"
-    | "namespace-reexport";
+  type: "default-in-barrel" | "default-reexport" | "mixed-exports" | "namespace-reexport";
   /** Issue severity */
   severity: "warning" | "info";
   /** Human-readable description */
@@ -137,8 +133,7 @@ export interface ExportRecommendation {
   /** Priority level */
   priority: "high" | "medium" | "low";
   /** Category of recommendation */
-  category:
-    "barrel-files" | "default-exports" | "config-optimization" | "general";
+  category: "barrel-files" | "default-exports" | "config-optimization" | "general";
   /** Title */
   title: string;
   /** Detailed description */

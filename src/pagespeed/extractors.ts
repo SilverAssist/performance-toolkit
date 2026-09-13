@@ -28,9 +28,7 @@ export function extractScores(result: LighthouseResult): CategoryScores {
 
   return {
     performance:
-      categories.performance?.score != null
-        ? Math.round(categories.performance.score * 100)
-        : null,
+      categories.performance?.score != null ? Math.round(categories.performance.score * 100) : null,
     accessibility:
       categories.accessibility?.score != null
         ? Math.round(categories.accessibility.score * 100)
@@ -39,10 +37,7 @@ export function extractScores(result: LighthouseResult): CategoryScores {
       categories["best-practices"]?.score != null
         ? Math.round(categories["best-practices"].score * 100)
         : null,
-    seo:
-      categories.seo?.score != null
-        ? Math.round(categories.seo.score * 100)
-        : null,
+    seo: categories.seo?.score != null ? Math.round(categories.seo.score * 100) : null,
   };
 }
 
@@ -89,9 +84,7 @@ export function extractMetricValue(audit?: LighthouseAudit): MetricValue {
 /**
  * Extracts LCP element information
  */
-export function extractLCPElement(
-  result: LighthouseResult,
-): LCPElement | undefined {
+export function extractLCPElement(result: LighthouseResult): LCPElement | undefined {
   const lcpAudit = result.audits["largest-contentful-paint-element"];
 
   if (!lcpAudit?.details?.items?.[0]) {
@@ -118,11 +111,7 @@ export function extractOpportunities(result: LighthouseResult): Opportunity[] {
 
   for (const id of OPPORTUNITY_AUDITS) {
     const audit = result.audits[id];
-    if (
-      !audit ||
-      audit.score === 1 ||
-      audit.scoreDisplayMode === "notApplicable"
-    ) {
+    if (!audit || audit.score === 1 || audit.scoreDisplayMode === "notApplicable") {
       continue;
     }
 

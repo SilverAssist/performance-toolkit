@@ -32,32 +32,25 @@ export function generateKeyOpportunities(
   }
 
   // Opportunity 2: JavaScript Optimization
-  const jsWaste =
-    insights?.unusedJavaScript?.reduce((sum, js) => sum + js.wastedBytes, 0) ??
-    0;
+  const jsWaste = insights?.unusedJavaScript?.reduce((sum, js) => sum + js.wastedBytes, 0) ?? 0;
   if (jsWaste > 100000) {
     opportunities.push(createJavaScriptOpportunity(result, context, jsWaste));
   }
 
   // Opportunity 3: Image Optimization
-  const imgWaste =
-    insights?.imageIssues?.reduce((sum, img) => sum + img.wastedBytes, 0) ?? 0;
+  const imgWaste = insights?.imageIssues?.reduce((sum, img) => sum + img.wastedBytes, 0) ?? 0;
   if (imgWaste > 50000) {
     opportunities.push(createImageOpportunity(result, context, imgWaste));
   }
 
   // Opportunity 4: Third-Party Script Management
-  const tpBlocking =
-    insights?.thirdParties?.reduce((sum, tp) => sum + tp.blockingTime, 0) ?? 0;
+  const tpBlocking = insights?.thirdParties?.reduce((sum, tp) => sum + tp.blockingTime, 0) ?? 0;
   if (tpBlocking > 250) {
-    opportunities.push(
-      createThirdPartyOpportunity(result, context, tpBlocking),
-    );
+    opportunities.push(createThirdPartyOpportunity(result, context, tpBlocking));
   }
 
   // Opportunity 5: Render-Blocking Resources
-  const rbWaste =
-    insights?.renderBlocking?.reduce((sum, rb) => sum + rb.wastedMs, 0) ?? 0;
+  const rbWaste = insights?.renderBlocking?.reduce((sum, rb) => sum + rb.wastedMs, 0) ?? 0;
   if (rbWaste > 200) {
     opportunities.push(createRenderBlockingOpportunity(rbWaste));
   }
@@ -110,17 +103,13 @@ export function createLCPOpportunity(
         framework: "Next.js",
         note: "Use the Image component with priority prop instead of native img tag.",
         codeExample: `import Image from 'next/image';\n\n<Image\n  src="${lcpElement?.url || "/hero.jpg"}"\n  priority\n  alt="..."\n  width={1200}\n  height={600}\n/>`,
-        docLink:
-          "https://nextjs.org/docs/app/api-reference/components/image#priority",
+        docLink: "https://nextjs.org/docs/app/api-reference/components/image#priority",
       });
     }
   }
 
   // Step 3: Preload if needed
-  if (
-    insights?.lcpBreakdown?.resourceLoadDelay &&
-    insights.lcpBreakdown.resourceLoadDelay > 300
-  ) {
+  if (insights?.lcpBreakdown?.resourceLoadDelay && insights.lcpBreakdown.resourceLoadDelay > 300) {
     steps.push({
       order: 3,
       title: "Preload the LCP resource",
@@ -155,10 +144,7 @@ export function createLCPOpportunity(
       scoreImprovement: metrics.lcp.rating === "poor" ? 15 : 8,
     },
     steps,
-    relatedAudits: [
-      "largest-contentful-paint",
-      "largest-contentful-paint-element",
-    ],
+    relatedAudits: ["largest-contentful-paint", "largest-contentful-paint-element"],
     frameworkNotes: frameworkNotes.length > 0 ? frameworkNotes : undefined,
     resources: [
       { title: "Optimize LCP", url: "https://web.dev/optimize-lcp/" },
@@ -185,8 +171,7 @@ export function createJavaScriptOpportunity(
   steps.push({
     order: 1,
     title: "Audit JavaScript bundles",
-    instructions:
-      "Use webpack-bundle-analyzer or source-map-explorer to identify large modules.",
+    instructions: "Use webpack-bundle-analyzer or source-map-explorer to identify large modules.",
     codeExample: {
       language: "bash",
       code: "npx source-map-explorer dist/**/*.js",
@@ -197,8 +182,7 @@ export function createJavaScriptOpportunity(
     steps.push({
       order: 2,
       title: "Implement code splitting",
-      instructions:
-        "Split your JavaScript into smaller chunks that can be loaded on demand.",
+      instructions: "Split your JavaScript into smaller chunks that can be loaded on demand.",
     });
 
     if (context?.framework?.name === "next") {
@@ -206,8 +190,7 @@ export function createJavaScriptOpportunity(
         framework: "Next.js",
         note: "Use dynamic imports for components that aren't needed immediately.",
         codeExample: `import dynamic from 'next/dynamic';\n\nconst HeavyComponent = dynamic(() => import('./HeavyComponent'), {\n  loading: () => <p>Loading...</p>,\n  ssr: false, // Optional: disable SSR for client-only components\n});`,
-        docLink:
-          "https://nextjs.org/docs/app/building-your-application/optimizing/lazy-loading",
+        docLink: "https://nextjs.org/docs/app/building-your-application/optimizing/lazy-loading",
       });
     }
   }
@@ -215,8 +198,7 @@ export function createJavaScriptOpportunity(
   steps.push({
     order: 3,
     title: "Review and remove unused dependencies",
-    instructions:
-      "Check your package.json for dependencies that are no longer used.",
+    instructions: "Check your package.json for dependencies that are no longer used.",
     codeExample: {
       language: "bash",
       code: "npx depcheck",
@@ -229,21 +211,12 @@ export function createJavaScriptOpportunity(
     title: "Reduce JavaScript bundle size",
     description: `${formatBytes(wastedBytes)} of JavaScript is unused. Reducing bundle size improves load time and TBT.`,
     impact: {
-      level:
-        wastedBytes > 500000
-          ? "critical"
-          : wastedBytes > 200000
-            ? "high"
-            : "medium",
+      level: wastedBytes > 500000 ? "critical" : wastedBytes > 200000 ? "high" : "medium",
       sizeSavings: wastedBytes,
       scoreImprovement: Math.min(15, Math.floor(wastedBytes / 50000)),
     },
     steps,
-    relatedAudits: [
-      "unused-javascript",
-      "bootup-time",
-      "mainthread-work-breakdown",
-    ],
+    relatedAudits: ["unused-javascript", "bootup-time", "mainthread-work-breakdown"],
     frameworkNotes: frameworkNotes.length > 0 ? frameworkNotes : undefined,
     resources: [
       {
@@ -304,8 +277,7 @@ export function createImageOpportunity(
       framework: "Next.js",
       note: "Next.js Image component automatically handles format conversion, sizing, and lazy loading.",
       codeExample: `import Image from 'next/image';\n\n<Image\n  src="/photo.jpg"\n  alt="Description"\n  width={800}\n  height={600}\n  // priority // Only for above-the-fold images\n/>`,
-      docLink:
-        "https://nextjs.org/docs/app/building-your-application/optimizing/images",
+      docLink: "https://nextjs.org/docs/app/building-your-application/optimizing/images",
     });
   }
 
@@ -320,11 +292,7 @@ export function createImageOpportunity(
       lcpImprovementMs: issues.some((i) => i.issueType === "format") ? 200 : 0,
     },
     steps,
-    relatedAudits: [
-      "modern-image-formats",
-      "uses-responsive-images",
-      "offscreen-images",
-    ],
+    relatedAudits: ["modern-image-formats", "uses-responsive-images", "offscreen-images"],
     frameworkNotes: frameworkNotes.length > 0 ? frameworkNotes : undefined,
     resources: [
       {
@@ -363,14 +331,12 @@ export function createThirdPartyOpportunity(
       {
         order: 1,
         title: "Audit third-party scripts",
-        instructions:
-          "Review each third-party script and determine if it's truly necessary.",
+        instructions: "Review each third-party script and determine if it's truly necessary.",
       },
       {
         order: 2,
         title: "Defer non-critical scripts",
-        instructions:
-          "Load analytics and tracking scripts after the page has finished loading.",
+        instructions: "Load analytics and tracking scripts after the page has finished loading.",
         codeExample: {
           language: "javascript",
           code: `// Load analytics after page load\nwindow.addEventListener('load', () => {\n  // Initialize analytics\n});`,
@@ -379,8 +345,7 @@ export function createThirdPartyOpportunity(
       {
         order: 3,
         title: "Use Partytown for heavy scripts",
-        instructions:
-          "Consider using Partytown to run third-party scripts in a web worker.",
+        instructions: "Consider using Partytown to run third-party scripts in a web worker.",
       },
     ],
     relatedAudits: ["third-party-summary", "bootup-time"],
@@ -391,8 +356,7 @@ export function createThirdPartyOpportunity(
               framework: "Next.js",
               note: "Use next/script with appropriate strategy to control loading behavior.",
               codeExample: `import Script from 'next/script';\n\n<Script\n  src="https://analytics.example.com"\n  strategy="lazyOnload" // or "afterInteractive"\n/>`,
-              docLink:
-                "https://nextjs.org/docs/app/building-your-application/optimizing/scripts",
+              docLink: "https://nextjs.org/docs/app/building-your-application/optimizing/scripts",
             },
           ]
         : undefined,
@@ -402,9 +366,7 @@ export function createThirdPartyOpportunity(
 /**
  * Creates render-blocking resources opportunity
  */
-export function createRenderBlockingOpportunity(
-  wastedMs: number,
-): KeyOpportunity {
+export function createRenderBlockingOpportunity(wastedMs: number): KeyOpportunity {
   return {
     id: "eliminate-render-blocking",
     priority: 5,
@@ -418,14 +380,12 @@ export function createRenderBlockingOpportunity(
       {
         order: 1,
         title: "Inline critical CSS",
-        instructions:
-          "Extract CSS needed for above-the-fold content and inline it in the HTML.",
+        instructions: "Extract CSS needed for above-the-fold content and inline it in the HTML.",
       },
       {
         order: 2,
         title: "Defer non-critical CSS",
-        instructions:
-          "Load non-critical CSS asynchronously using media queries or JavaScript.",
+        instructions: "Load non-critical CSS asynchronously using media queries or JavaScript.",
         codeExample: {
           language: "html",
           code: '<link rel="stylesheet" href="non-critical.css" media="print" onload="this.media=\'all\'">',
@@ -434,8 +394,7 @@ export function createRenderBlockingOpportunity(
       {
         order: 3,
         title: "Add async/defer to scripts",
-        instructions:
-          "Non-critical scripts should use async or defer attributes.",
+        instructions: "Non-critical scripts should use async or defer attributes.",
         codeExample: {
           language: "html",
           code: '<script src="app.js" defer></script>',
@@ -449,9 +408,7 @@ export function createRenderBlockingOpportunity(
 /**
  * Creates CLS improvement opportunity
  */
-export function createCLSOpportunity(
-  result: PerformanceResult,
-): KeyOpportunity {
+export function createCLSOpportunity(result: PerformanceResult): KeyOpportunity {
   const { metrics } = result;
 
   return {
@@ -467,8 +424,7 @@ export function createCLSOpportunity(
       {
         order: 1,
         title: "Set explicit dimensions on images and videos",
-        instructions:
-          "Always specify width and height attributes on media elements.",
+        instructions: "Always specify width and height attributes on media elements.",
         codeExample: {
           language: "html",
           code: '<img src="..." width="800" height="600" alt="..." />',
@@ -477,8 +433,7 @@ export function createCLSOpportunity(
       {
         order: 2,
         title: "Reserve space for dynamic content",
-        instructions:
-          "Use CSS to reserve space for ads, embeds, and dynamically injected content.",
+        instructions: "Use CSS to reserve space for ads, embeds, and dynamically injected content.",
       },
       {
         order: 3,
@@ -494,8 +449,6 @@ export function createCLSOpportunity(
       },
     ],
     relatedAudits: ["cumulative-layout-shift", "unsized-images"],
-    resources: [
-      { title: "Optimize CLS", url: "https://web.dev/optimize-cls/" },
-    ],
+    resources: [{ title: "Optimize CLS", url: "https://web.dev/optimize-cls/" }],
   };
 }
