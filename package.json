@@ -3,6 +3,7 @@
   "version": "0.5.2",
   "description": "PageSpeed Insights and Lighthouse CI integration for performance monitoring across SilverAssist projects",
   "author": "Miguel Colmenares <me@miguelcolmenares.com>",
+  "prettier": "@silverassist/npm-package-standards/prettier",
   "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "overrides": {
@@ -172,13 +173,14 @@
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "format": "prettier --write \"src/**/*.ts\" \"bin/**/*.js\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"bin/**/*.js\"",
     "prepublishOnly": "npm run clean && npm run build && npm run test",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "typecheck": "tsc --noEmit",
     "release": "npm run prepublishOnly && npm publish --access public",
-    "check": "npm run typecheck && npm run lint && npm run test",
+    "check": "npm run format:check && npm run typecheck && npm run lint && npm run test",
     "prepare": "husky || true"
   },
   "peerDependencies": {
@@ -197,14 +199,13 @@
     "chalk": "^6.0.0"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
     "@lhci/cli": "^0.15.1",
+    "@silverassist/npm-package-standards": "^0.1.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.5.1",
     "@typescript-eslint/eslint-plugin": "^8.70.0",
     "@typescript-eslint/parser": "^8.70.0",
     "eslint": "^10.10.0",
-    "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "jest": "^30.5.1",
     "lint-staged": "^17.5.1",

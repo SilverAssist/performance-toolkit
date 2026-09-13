@@ -1,9 +1,8 @@
-import eslint from "@eslint/js";
+import base from "@silverassist/npm-package-standards/eslint/base";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  eslint.configs.recommended,
-  ...tseslint.configs.recommended,
+  ...base,
   {
     ignores: ["dist/**", "node_modules/**", "coverage/**", "bin/**"],
   },
@@ -11,10 +10,7 @@ export default tseslint.config(
     files: ["src/**/*.ts"],
     rules: {
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        { argsIgnorePattern: "^_" },
-      ],
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
     },
-  }
+  },
 );
