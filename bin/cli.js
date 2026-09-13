@@ -303,9 +303,7 @@ function printSectionFooter() {
  * @param {string} color - Color for value (optional)
  */
 function printLabeledValue(label, value, color = null) {
-  const coloredValue = color
-    ? `${COLORS[color]}${value}${COLORS.reset}`
-    : value;
+  const coloredValue = color ? `${COLORS[color]}${value}${COLORS.reset}` : value;
   console.log(`   ${label}: ${coloredValue}`);
 }
 
@@ -320,22 +318,16 @@ function printItemsList(items, maxItems = 3, urlLength = 40) {
 
   const topItems = items.slice(0, maxItems);
   topItems.forEach((item) => {
-    const label = item.url
-      ? truncateUrl(item.url, urlLength)
-      : item.label || "Unknown";
+    const label = item.url ? truncateUrl(item.url, urlLength) : item.label || "Unknown";
     const size = item.wastedBytes
       ? formatBytes(item.wastedBytes)
       : item.timeMs
         ? `${Math.round(item.timeMs)}ms`
         : "";
-    console.log(
-      `      ${COLORS.dim}• ${label}${size ? ` (${size})` : ""}${COLORS.reset}`,
-    );
+    console.log(`      ${COLORS.dim}• ${label}${size ? ` (${size})` : ""}${COLORS.reset}`);
   });
   if (items.length > maxItems) {
-    console.log(
-      `      ${COLORS.dim}... and ${items.length - maxItems} more${COLORS.reset}`,
-    );
+    console.log(`      ${COLORS.dim}... and ${items.length - maxItems} more${COLORS.reset}`);
   }
 }
 
@@ -430,10 +422,7 @@ function printSummary(result) {
   console.log("");
   log("═══════════════════════════════════════════════════════════════", "dim");
   log(`📊 Performance Report: ${result.url}`, "bright");
-  log(
-    `   Strategy: ${result.strategy.toUpperCase()} | ${result.timestamp}`,
-    "dim",
-  );
+  log(`   Strategy: ${result.strategy.toUpperCase()} | ${result.timestamp}`, "dim");
   log("═══════════════════════════════════════════════════════════════", "dim");
 
   // Category Scores
@@ -447,24 +436,12 @@ function printSummary(result) {
   // Core Web Vitals
   printSectionHeader("Core Web Vitals", "⚡", false);
   const metrics = result.metrics;
-  console.log(
-    `   LCP (Largest Contentful Paint):  ${formatMetric(metrics.lcp)}`,
-  );
-  console.log(
-    `   FCP (First Contentful Paint):    ${formatMetric(metrics.fcp)}`,
-  );
-  console.log(
-    `   CLS (Cumulative Layout Shift):   ${formatMetric(metrics.cls)}`,
-  );
-  console.log(
-    `   TBT (Total Blocking Time):       ${formatMetric(metrics.tbt)}`,
-  );
-  console.log(
-    `   SI  (Speed Index):               ${formatMetric(metrics.si)}`,
-  );
-  console.log(
-    `   TTI (Time to Interactive):       ${formatMetric(metrics.tti)}`,
-  );
+  console.log(`   LCP (Largest Contentful Paint):  ${formatMetric(metrics.lcp)}`);
+  console.log(`   FCP (First Contentful Paint):    ${formatMetric(metrics.fcp)}`);
+  console.log(`   CLS (Cumulative Layout Shift):   ${formatMetric(metrics.cls)}`);
+  console.log(`   TBT (Total Blocking Time):       ${formatMetric(metrics.tbt)}`);
+  console.log(`   SI  (Speed Index):               ${formatMetric(metrics.si)}`);
+  console.log(`   TTI (Time to Interactive):       ${formatMetric(metrics.tti)}`);
 
   // LCP Element
   if (result.lcpElement) {
@@ -475,9 +452,7 @@ function printSummary(result) {
       console.log(`   URL:      ${truncateUrl(result.lcpElement.url)}`);
     }
     if (result.lcpElement.snippet) {
-      console.log(
-        `   Snippet:  ${result.lcpElement.snippet.substring(0, 80)}...`,
-      );
+      console.log(`   Snippet:  ${result.lcpElement.snippet.substring(0, 80)}...`);
     }
   }
 
@@ -493,9 +468,7 @@ function printScore(label, score) {
   if (score === null) return;
   const color = getScoreColor(score);
   const padding = " ".repeat(Math.max(0, 15 - label.length));
-  console.log(
-    `   ${label}:${padding}${COLORS[color]}${score}${COLORS.reset}/100`,
-  );
+  console.log(`   ${label}:${padding}${COLORS[color]}${score}${COLORS.reset}/100`);
 }
 
 /**
@@ -510,9 +483,7 @@ function printOpportunities(opportunities) {
   const topOpportunities = opportunities.slice(0, 5);
   topOpportunities.forEach((op, index) => {
     const savings = op.savingsMs ? `(~${Math.round(op.savingsMs)}ms)` : "";
-    console.log(
-      `   ${index + 1}. ${op.title} ${COLORS.yellow}${savings}${COLORS.reset}`,
-    );
+    console.log(`   ${index + 1}. ${op.title} ${COLORS.yellow}${savings}${COLORS.reset}`);
   });
 
   if (opportunities.length > 5) {
@@ -536,9 +507,7 @@ function printDetailedInsights(insights) {
   if (insights.lcpBreakdown) {
     printInsightSubsection("⏱️  LCP Timing Breakdown");
     const b = insights.lcpBreakdown;
-    console.log(
-      `   TTFB (Server Response):     ${COLORS.yellow}${b.ttfb}ms${COLORS.reset}`,
-    );
+    console.log(`   TTFB (Server Response):     ${COLORS.yellow}${b.ttfb}ms${COLORS.reset}`);
     console.log(
       `   Resource Load Delay:        ${COLORS.yellow}${b.resourceLoadDelay}ms${COLORS.reset}`,
     );
@@ -549,9 +518,7 @@ function printDetailedInsights(insights) {
       `   Element Render Delay:       ${COLORS.yellow}${b.elementRenderDelay}ms${COLORS.reset}`,
     );
     console.log(`   ─────────────────────────────`);
-    console.log(
-      `   Total LCP:                  ${COLORS.bright}${b.total}ms${COLORS.reset}`,
-    );
+    console.log(`   Total LCP:                  ${COLORS.bright}${b.total}ms${COLORS.reset}`);
   }
 
   // Third-Party Impact
@@ -560,14 +527,8 @@ function printDetailedInsights(insights) {
 
     insights.thirdParties.slice(0, 10).forEach((tp) => {
       const blockingColor =
-        tp.blockingTime > 200
-          ? "red"
-          : tp.blockingTime > 50
-            ? "yellow"
-            : "green";
-      console.log(
-        `   ${COLORS.bright}${tp.entity}${COLORS.reset} (${tp.category || "other"})`,
-      );
+        tp.blockingTime > 200 ? "red" : tp.blockingTime > 50 ? "yellow" : "green";
+      console.log(`   ${COLORS.bright}${tp.entity}${COLORS.reset} (${tp.category || "other"})`);
       console.log(
         `      Blocking Time: ${COLORS[blockingColor]}${tp.blockingTime.toFixed(0)}ms${COLORS.reset}`,
       );
@@ -595,9 +556,7 @@ function printDetailedInsights(insights) {
     });
 
     console.log(`   ─────────────────────────────`);
-    console.log(
-      `   ${COLORS.bright}Total Wasted: ${formatBytes(totalWasted)}${COLORS.reset}`,
-    );
+    console.log(`   ${COLORS.bright}Total Wasted: ${formatBytes(totalWasted)}${COLORS.reset}`);
 
     printMoreItems(insights.unusedJavaScript.length, 10, "scripts");
   }
@@ -618,9 +577,7 @@ function printDetailedInsights(insights) {
       );
     });
 
-    console.log(
-      `   ${COLORS.bright}Total Wasted: ${formatBytes(totalWasted)}${COLORS.reset}`,
-    );
+    console.log(`   ${COLORS.bright}Total Wasted: ${formatBytes(totalWasted)}${COLORS.reset}`);
   }
 
   // Cache Issues
@@ -628,15 +585,9 @@ function printDetailedInsights(insights) {
     printInsightSubsection("💾 Cache Policy Issues");
 
     insights.cacheIssues.slice(0, 8).forEach((cache) => {
-      const entityTag = cache.entity
-        ? `${COLORS.dim}[${cache.entity}]${COLORS.reset}`
-        : "";
+      const entityTag = cache.entity ? `${COLORS.dim}[${cache.entity}]${COLORS.reset}` : "";
       const ttlColor =
-        cache.cacheTTL === 0
-          ? "red"
-          : cache.cacheTTL < 86400000
-            ? "yellow"
-            : "green";
+        cache.cacheTTL === 0 ? "red" : cache.cacheTTL < 86400000 ? "yellow" : "green";
       console.log(`   ${truncateUrl(cache.url, 50)} ${entityTag}`);
       console.log(
         `      TTL: ${COLORS[ttlColor]}${cache.cacheTTLDisplay}${COLORS.reset} | Size: ${formatBytes(cache.transferSize)}`,
@@ -652,11 +603,7 @@ function printDetailedInsights(insights) {
 
     insights.imageIssues.slice(0, 5).forEach((img) => {
       const typeColor =
-        img.issueType === "offscreen"
-          ? "cyan"
-          : img.issueType === "format"
-            ? "yellow"
-            : "red";
+        img.issueType === "offscreen" ? "cyan" : img.issueType === "format" ? "yellow" : "red";
       console.log(
         `   ${COLORS[typeColor]}[${img.issueType}]${COLORS.reset} ${truncateUrl(img.url, 45)}`,
       );
@@ -707,8 +654,7 @@ function printDetailedInsights(insights) {
     printInsightSubsection("⏳ Long Main-Thread Tasks");
 
     insights.longTasks.slice(0, 5).forEach((task) => {
-      const durationColor =
-        task.duration > 200 ? "red" : task.duration > 100 ? "yellow" : "green";
+      const durationColor = task.duration > 200 ? "red" : task.duration > 100 ? "yellow" : "green";
       console.log(
         `   Duration: ${COLORS[durationColor]}${task.duration.toFixed(0)}ms${COLORS.reset} at ${task.startTime.toFixed(0)}ms`,
       );
@@ -777,12 +723,8 @@ function printKeyOpportunities(report) {
     const { color, emoji } = getImpactStyle(opp.impact.level);
 
     console.log("");
-    console.log(
-      `   ${index + 1}. ${emoji} ${COLORS.bright}${opp.title}${COLORS.reset}`,
-    );
-    console.log(
-      `      Impact: ${COLORS[color]}${opp.impact.level.toUpperCase()}${COLORS.reset}`,
-    );
+    console.log(`   ${index + 1}. ${emoji} ${COLORS.bright}${opp.title}${COLORS.reset}`);
+    console.log(`      Impact: ${COLORS[color]}${opp.impact.level.toUpperCase()}${COLORS.reset}`);
 
     if (opp.impact.lcpImprovementMs) {
       console.log(
@@ -797,9 +739,7 @@ function printKeyOpportunities(report) {
 
     // Show first step
     if (opp.steps && opp.steps.length > 0) {
-      console.log(
-        `      ${COLORS.dim}Next step: ${opp.steps[0].title}${COLORS.reset}`,
-      );
+      console.log(`      ${COLORS.dim}Next step: ${opp.steps[0].title}${COLORS.reset}`);
     }
 
     // Show framework-specific note if available
@@ -818,9 +758,7 @@ function printKeyOpportunities(report) {
   // Summary
   printSectionHeader("Summary", "📊", false);
 
-  const { color: statusColor, emoji: statusEmoji } = getStatusStyle(
-    summary.healthStatus,
-  );
+  const { color: statusColor, emoji: statusEmoji } = getStatusStyle(summary.healthStatus);
 
   console.log(
     `   Status: ${statusEmoji} ${COLORS[statusColor]}${summary.healthStatus.toUpperCase()}${COLORS.reset}`,
@@ -901,13 +839,9 @@ function printEnhancedLCP(enhancedLCP) {
     printInsightSubsection("Recommendations");
     enhancedLCP.recommendations.slice(0, 3).forEach((rec) => {
       const { color } = getImpactStyle(rec.impact);
-      console.log(
-        `      ${COLORS[color]}[${rec.impact}]${COLORS.reset} ${rec.title}`,
-      );
+      console.log(`      ${COLORS[color]}[${rec.impact}]${COLORS.reset} ${rec.title}`);
       if (rec.codeHints && rec.codeHints.length > 0) {
-        console.log(
-          `         ${COLORS.dim}Hint: ${rec.codeHints[0]}${COLORS.reset}`,
-        );
+        console.log(`         ${COLORS.dim}Hint: ${rec.codeHints[0]}${COLORS.reset}`);
       }
     });
   }
@@ -933,9 +867,7 @@ function printProjectContext(context) {
 
   if (context.framework) {
     printInsightSubsection("Framework");
-    console.log(
-      `      Name:        ${COLORS.bright}${context.framework.name}${COLORS.reset}`,
-    );
+    console.log(`      Name:        ${COLORS.bright}${context.framework.name}${COLORS.reset}`);
     console.log(`      Version:     ${context.framework.version}`);
     if (context.framework.routerType) {
       console.log(`      Router:      ${context.framework.routerType}`);
@@ -944,9 +876,7 @@ function printProjectContext(context) {
       console.log(`      Rendering:   ${context.framework.renderingMode}`);
     }
     if (context.framework.features && context.framework.features.length > 0) {
-      console.log(
-        `      Features:    ${context.framework.features.join(", ")}`,
-      );
+      console.log(`      Features:    ${context.framework.features.join(", ")}`);
     }
   }
 
@@ -969,10 +899,7 @@ function printProjectContext(context) {
     context.analytics.forEach((a) => console.log(`      • ${a}`));
   }
 
-  if (
-    context.thirdPartyIntegrations &&
-    context.thirdPartyIntegrations.length > 0
-  ) {
+  if (context.thirdPartyIntegrations && context.thirdPartyIntegrations.length > 0) {
     printInsightSubsection("Integrations");
     context.thirdPartyIntegrations.forEach((i) => console.log(`      • ${i}`));
   }
@@ -994,10 +921,7 @@ function printProjectContext(context) {
 function checkThresholds(result, thresholds) {
   const violations = [];
 
-  if (
-    thresholds.performance &&
-    result.scores.performance < thresholds.performance
-  ) {
+  if (thresholds.performance && result.scores.performance < thresholds.performance) {
     violations.push({
       metric: "performance",
       actual: result.scores.performance,
@@ -1187,33 +1111,19 @@ function showHelp() {
   console.log("Usage: perf-check <url> [options]\n");
 
   log("Commands:", "cyan");
-  console.log(
-    "  <url>              Analyze a URL and display Core Web Vitals\n",
-  );
+  console.log("  <url>              Analyze a URL and display Core Web Vitals\n");
 
   log("Options:", "cyan");
   console.log("  --mobile, -m       Use mobile strategy (default)");
   console.log("  --desktop, -d      Use desktop strategy");
-  console.log(
-    "  --verbose, -v      Show detailed output including opportunities",
-  );
-  console.log(
-    "  --insights, -i     Show all detailed insights (for AI agents)",
-  );
+  console.log("  --verbose, -v      Show detailed output including opportunities");
+  console.log("  --insights, -i     Show all detailed insights (for AI agents)");
   console.log("  --diagnostics      Show diagnostics table (PageSpeed format)");
-  console.log(
-    "  --actionable, -a   Generate actionable report with key opportunities",
-  );
+  console.log("  --actionable, -a   Generate actionable report with key opportunities");
   console.log("  --detect-context   Detect project technology stack");
-  console.log(
-    "  --audit-exports    Analyze export patterns for tree-shaking optimization",
-  );
-  console.log(
-    "  --json, -j         Output structured JSON (for programmatic use)",
-  );
-  console.log(
-    "  --ci               CI mode (exit code 1 on threshold violations)",
-  );
+  console.log("  --audit-exports    Analyze export patterns for tree-shaking optimization");
+  console.log("  --json, -j         Output structured JSON (for programmatic use)");
+  console.log("  --ci               CI mode (exit code 1 on threshold violations)");
   console.log("  --config, -c       Path to configuration file");
   console.log("  --output, -o       Output results to JSON file");
   console.log("  --baseline, -b     Compare against baseline file");
@@ -1226,26 +1136,16 @@ function showHelp() {
   console.log("  perf-check https://www.example.com --insights");
   console.log("  perf-check https://www.example.com --actionable");
   console.log("  perf-check https://www.example.com --diagnostics");
-  console.log(
-    "  perf-check --audit-exports                    # Analyze local project",
-  );
+  console.log("  perf-check --audit-exports                    # Analyze local project");
   console.log("  perf-check --audit-exports --json > exports.json");
   console.log("  perf-check https://www.example.com --json > report.json");
-  console.log(
-    "  perf-check https://www.example.com --ci --output results.json\n",
-  );
+  console.log("  perf-check https://www.example.com --ci --output results.json\n");
 
   log("Environment Variables:", "cyan");
-  console.log(
-    "  PAGESPEED_API_KEY  Google PageSpeed API key (recommended for higher rate limits)",
-  );
+  console.log("  PAGESPEED_API_KEY  Google PageSpeed API key (recommended for higher rate limits)");
   console.log("");
-  console.log(
-    "  The CLI automatically loads .env.local or .env files from the current directory.",
-  );
-  console.log(
-    "  In CI/CD pipelines, set PAGESPEED_API_KEY as a secret/environment variable.\n",
-  );
+  console.log("  The CLI automatically loads .env.local or .env files from the current directory.");
+  console.log("  In CI/CD pipelines, set PAGESPEED_API_KEY as a secret/environment variable.\n");
 
   log("CI/CD Integration:", "cyan");
   console.log("  # GitHub Actions");
@@ -1256,9 +1156,7 @@ function showHelp() {
   console.log("  export PAGESPEED_API_KEY=$PAGESPEED_API_KEY\n");
 
   log("AI Agent Usage:", "cyan");
-  console.log(
-    "  Use --actionable for framework-aware recommendations that consider",
-  );
+  console.log("  Use --actionable for framework-aware recommendations that consider");
   console.log("  your project's technology stack (Next.js, React, Vue, etc.).");
   console.log("  Use --diagnostics for a PageSpeed-style diagnostics table.");
   console.log("  Use --json for machine-readable output.\n");
@@ -1269,8 +1167,7 @@ function showHelp() {
  * @param {object} analysis - Export analysis result
  */
 function printExportAnalysis(analysis) {
-  const { summary, filesWithIssues, nextConfig, recommendations, framework } =
-    analysis;
+  const { summary, filesWithIssues, nextConfig, recommendations, framework } = analysis;
 
   // Header
   log("\n📦 Module Export Analysis", "bright");
@@ -1289,10 +1186,7 @@ function printExportAnalysis(analysis) {
     {
       label: "Default exports",
       value: summary.defaultExportFiles,
-      status:
-        summary.defaultExportFiles > summary.totalFiles * 0.3
-          ? "warning"
-          : "ok",
+      status: summary.defaultExportFiles > summary.totalFiles * 0.3 ? "warning" : "ok",
     },
     {
       label: "Named exports",
@@ -1313,17 +1207,9 @@ function printExportAnalysis(analysis) {
   ];
 
   stats.forEach((stat) => {
-    const icon =
-      stat.status === "warning" ? "⚠️" : stat.status === "info" ? "ℹ️" : "✓";
-    const color =
-      stat.status === "warning"
-        ? "yellow"
-        : stat.status === "info"
-          ? "cyan"
-          : "green";
-    console.log(
-      `   ${icon}  ${stat.label}: ${COLORS[color]}${stat.value}${COLORS.reset}`,
-    );
+    const icon = stat.status === "warning" ? "⚠️" : stat.status === "info" ? "ℹ️" : "✓";
+    const color = stat.status === "warning" ? "yellow" : stat.status === "info" ? "cyan" : "green";
+    console.log(`   ${icon}  ${stat.label}: ${COLORS[color]}${stat.value}${COLORS.reset}`);
   });
 
   // Issues Summary
@@ -1331,12 +1217,8 @@ function printExportAnalysis(analysis) {
     console.log("");
     log("⚠️  Issues Found", "yellow");
     log("─────────────────────────────────────────────", "dim");
-    console.log(
-      `   Warnings: ${COLORS.red}${summary.issuesBySeverity.warning}${COLORS.reset}`,
-    );
-    console.log(
-      `   Info: ${COLORS.cyan}${summary.issuesBySeverity.info}${COLORS.reset}`,
-    );
+    console.log(`   Warnings: ${COLORS.red}${summary.issuesBySeverity.warning}${COLORS.reset}`);
+    console.log(`   Info: ${COLORS.cyan}${summary.issuesBySeverity.info}${COLORS.reset}`);
   }
 
   // Next.js Config Analysis
@@ -1347,23 +1229,13 @@ function printExportAnalysis(analysis) {
 
     if (nextConfig.hasOptimizePackageImports) {
       success("  ✓ optimizePackageImports is configured");
-      if (
-        nextConfig.optimizedPackages &&
-        nextConfig.optimizedPackages.length > 0
-      ) {
-        console.log(
-          `    Optimized packages: ${nextConfig.optimizedPackages.join(", ")}`,
-        );
+      if (nextConfig.optimizedPackages && nextConfig.optimizedPackages.length > 0) {
+        console.log(`    Optimized packages: ${nextConfig.optimizedPackages.join(", ")}`);
       }
     } else {
       warn("  ⚠ optimizePackageImports is NOT configured");
-      if (
-        nextConfig.suggestedPackages &&
-        nextConfig.suggestedPackages.length > 0
-      ) {
-        console.log(
-          `    Suggested packages: ${nextConfig.suggestedPackages.join(", ")}`,
-        );
+      if (nextConfig.suggestedPackages && nextConfig.suggestedPackages.length > 0) {
+        console.log(`    Suggested packages: ${nextConfig.suggestedPackages.join(", ")}`);
       }
     }
   }
@@ -1375,36 +1247,21 @@ function printExportAnalysis(analysis) {
     log("─────────────────────────────────────────────", "dim");
 
     recommendations.forEach((rec, idx) => {
-      const priorityIcon =
-        rec.priority === "high"
-          ? "🔴"
-          : rec.priority === "medium"
-            ? "🟡"
-            : "🟢";
+      const priorityIcon = rec.priority === "high" ? "🔴" : rec.priority === "medium" ? "🟡" : "🟢";
       const priorityColor =
-        rec.priority === "high"
-          ? "red"
-          : rec.priority === "medium"
-            ? "yellow"
-            : "green";
+        rec.priority === "high" ? "red" : rec.priority === "medium" ? "yellow" : "green";
 
       console.log("");
-      console.log(
-        `   ${priorityIcon}  ${COLORS[priorityColor]}${rec.title}${COLORS.reset}`,
-      );
+      console.log(`   ${priorityIcon}  ${COLORS[priorityColor]}${rec.title}${COLORS.reset}`);
       console.log(`       ${rec.description}`);
 
       // Impact
       if (rec.impact) {
         const impacts = [];
-        if (rec.impact.bundleSize)
-          impacts.push(`Bundle size: ${rec.impact.bundleSize}`);
-        if (rec.impact.treeShaking)
-          impacts.push(`Tree-shaking: ${rec.impact.treeShaking}`);
+        if (rec.impact.bundleSize) impacts.push(`Bundle size: ${rec.impact.bundleSize}`);
+        if (rec.impact.treeShaking) impacts.push(`Tree-shaking: ${rec.impact.treeShaking}`);
         if (impacts.length > 0) {
-          console.log(
-            `       ${COLORS.dim}Impact: ${impacts.join(", ")}${COLORS.reset}`,
-          );
+          console.log(`       ${COLORS.dim}Impact: ${impacts.join(", ")}${COLORS.reset}`);
         }
       }
 
@@ -1444,13 +1301,9 @@ function printExportAnalysis(analysis) {
       file.issues.forEach((issue) => {
         const icon = issue.severity === "warning" ? "⚠️" : "ℹ️";
         const color = issue.severity === "warning" ? "yellow" : "cyan";
-        console.log(
-          `     ${icon}  ${COLORS[color]}${issue.message}${COLORS.reset}`,
-        );
+        console.log(`     ${icon}  ${COLORS[color]}${issue.message}${COLORS.reset}`);
         if (issue.suggestion) {
-          console.log(
-            `         ${COLORS.dim}Suggestion: ${issue.suggestion}${COLORS.reset}`,
-          );
+          console.log(`         ${COLORS.dim}Suggestion: ${issue.suggestion}${COLORS.reset}`);
         }
       });
     });
@@ -1463,9 +1316,7 @@ function printExportAnalysis(analysis) {
   // Final message
   if (summary.totalIssues === 0) {
     console.log("");
-    success(
-      "✨ No export pattern issues found! Your code follows best practices.",
-    );
+    success("✨ No export pattern issues found! Your code follows best practices.");
   } else {
     console.log("");
     info(
@@ -1511,12 +1362,8 @@ async function main() {
     } else if (runningInCI && apiKey) {
       info("Using API key from CI/CD environment");
     } else if (!apiKey) {
-      warn(
-        "PAGESPEED_API_KEY not found. Running in free tier mode (2 requests/min limit).",
-      );
-      warn(
-        "Set PAGESPEED_API_KEY in .env.local or as environment variable for higher limits.",
-      );
+      warn("PAGESPEED_API_KEY not found. Running in free tier mode (2 requests/min limit).");
+      warn("Set PAGESPEED_API_KEY in .env.local or as environment variable for higher limits.");
     }
   }
 
@@ -1661,10 +1508,7 @@ async function main() {
         }
 
         // Print diagnostics table
-        if (
-          actionableReport.diagnostics &&
-          actionableReport.diagnostics.length > 0
-        ) {
+        if (actionableReport.diagnostics && actionableReport.diagnostics.length > 0) {
           printDiagnosticsTable(actionableReport.diagnostics);
         }
 
@@ -1674,18 +1518,12 @@ async function main() {
         }
 
         // Print key opportunities
-        if (
-          actionableReport.keyOpportunities &&
-          actionableReport.keyOpportunities.length > 0
-        ) {
+        if (actionableReport.keyOpportunities && actionableReport.keyOpportunities.length > 0) {
           printKeyOpportunities(actionableReport.keyOpportunities);
         }
 
         // Print next steps
-        if (
-          actionableReport.nextSteps &&
-          actionableReport.nextSteps.length > 0
-        ) {
+        if (actionableReport.nextSteps && actionableReport.nextSteps.length > 0) {
           printNextSteps(actionableReport.nextSteps);
         }
       } catch (reportErr) {

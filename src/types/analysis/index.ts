@@ -7,12 +7,7 @@
  */
 
 import type { CoreWebVitals, CategoryScores } from "../metrics";
-import type {
-  Strategy,
-  LoadingExperience,
-  PageSpeedResponse,
-  AuditDetails,
-} from "../pagespeed";
+import type { Strategy, LoadingExperience, PageSpeedResponse, AuditDetails } from "../pagespeed";
 
 // =============================================================================
 // LCP Element Types

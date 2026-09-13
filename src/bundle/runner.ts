@@ -10,11 +10,7 @@ import fs from "fs";
 import path from "path";
 import { exec } from "child_process";
 import { promisify } from "util";
-import type {
-  BundleAnalyzerOptions,
-  BundleAnalysisResult,
-  BundleSummary,
-} from "../types/bundle";
+import type { BundleAnalyzerOptions, BundleAnalysisResult, BundleSummary } from "../types/bundle";
 
 const execAsync = promisify(exec);
 
@@ -201,9 +197,7 @@ export class BundleAnalyzerRunner {
     const hasAnalyzerImportOrRequire =
       /import\s+[^'"]*['"]@next\/bundle-analyzer['"]/.test(content) ||
       /\brequire\(\s*['"]@next\/bundle-analyzer['"]\s*\)/.test(content);
-    const hasWithBundleAnalyzerWrapper = /withBundleAnalyzer\s*\(/.test(
-      content,
-    );
+    const hasWithBundleAnalyzerWrapper = /withBundleAnalyzer\s*\(/.test(content);
 
     if (hasAnalyzerImportOrRequire && hasWithBundleAnalyzerWrapper) {
       this.log("ℹ️  Bundle analyzer already configured");
@@ -437,9 +431,7 @@ export class BundleAnalyzerRunner {
           // Log restore error without throwing to preserve any original error
           this.logError(
             `Failed to restore original Next.js configuration: ${
-              restoreError instanceof Error
-                ? restoreError.message
-                : restoreError
+              restoreError instanceof Error ? restoreError.message : restoreError
             }`,
           );
         }
@@ -451,9 +443,7 @@ export class BundleAnalyzerRunner {
 /**
  * Create a bundle analyzer runner
  */
-export function createBundleAnalyzer(
-  options?: BundleAnalyzerOptions,
-): BundleAnalyzerRunner {
+export function createBundleAnalyzer(options?: BundleAnalyzerOptions): BundleAnalyzerRunner {
   return new BundleAnalyzerRunner(options);
 }
 

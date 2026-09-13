@@ -33,8 +33,7 @@ const COLORS = {
   dim: "\x1b[2m",
 };
 
-const log = (msg, color = "reset") =>
-  console.log(`${COLORS[color]}${msg}${COLORS.reset}`);
+const log = (msg, color = "reset") => console.log(`${COLORS[color]}${msg}${COLORS.reset}`);
 const success = (msg) => log(`✅ ${msg}`, "green");
 const warn = (msg) => log(`⚠️  ${msg}`, "yellow");
 const error = (msg) => log(`❌ ${msg}`, "red");
@@ -181,12 +180,7 @@ function isOurSymlink(targetPath, packagePromptsPath) {
  * Get the path to the manifest file that tracks installed prompts
  */
 function getManifestPath(projectRoot) {
-  return path.resolve(
-    projectRoot,
-    ".github",
-    "prompts",
-    ".perf-prompts-manifest.json",
-  );
+  return path.resolve(projectRoot, ".github", "prompts", ".perf-prompts-manifest.json");
 }
 
 /**
@@ -234,9 +228,7 @@ function getInstallableItems(packagePromptsPath) {
     if (item.isDirectory()) {
       // Rename directories to avoid conflicts with user's files
       const safeName =
-        item.name === "_partials"
-          ? "_partials-performance"
-          : `${item.name}-performance`;
+        item.name === "_partials" ? "_partials-performance" : `${item.name}-performance`;
       directories.push({ original: item.name, target: safeName });
     } else if (item.name.endsWith(".prompt.md")) {
       promptFiles.push(item.name);
@@ -315,23 +307,18 @@ function install(options = {}) {
 
     if (!copy) {
       warn("Symlinks require the package to be installed locally.");
-      warn(
-        "Symlinks to temporary npx cache would break when cache is cleared.",
-      );
+      warn("Symlinks to temporary npx cache would break when cache is cleared.");
       console.log("");
       info("Options:");
       console.log("  1. Install the package first, then run this command:");
       console.log("     npm install @silverassist/performance-toolkit");
       console.log("     npx perf-prompts install");
       console.log("");
-      console.log(
-        "  2. Or use --copy to copy files instead (won't auto-update):",
-      );
+      console.log("  2. Or use --copy to copy files instead (won't auto-update):");
       console.log("     npx perf-prompts install --copy");
       console.log("");
 
-      const response =
-        process.argv.includes("--yes") || process.argv.includes("-y");
+      const response = process.argv.includes("--yes") || process.argv.includes("-y");
       if (!response) {
         info("Automatically using --copy mode for npx execution.");
         copy = true;
@@ -350,9 +337,7 @@ function install(options = {}) {
   // Verify package prompts exist
   if (!fs.existsSync(packagePromptsPath)) {
     error(`Package prompts not found at: ${packagePromptsPath}`);
-    error(
-      "This might be a package installation issue. Try reinstalling the package.",
-    );
+    error("This might be a package installation issue. Try reinstalling the package.");
     process.exit(1);
   }
 
@@ -449,9 +434,7 @@ function install(options = {}) {
       success(`${directories.length} directories copied: ${dirNames}`);
     }
     warn("Note: Copied prompts won't auto-update when the package is updated.");
-    warn(
-      "Run 'npx perf-prompts install' again after updates, or use symlinks instead.",
-    );
+    warn("Run 'npx perf-prompts install' again after updates, or use symlinks instead.");
   } else {
     success(`${installedCount} prompt files symlinked to: ${targetDir}`);
     if (directories.length > 0) {
@@ -494,9 +477,7 @@ function install(options = {}) {
         // Check if skill already exists
         if (fs.existsSync(skill.target)) {
           if (!force) {
-            warn(
-              `Skill '${skill.name}' already exists, skipping (use --force to replace)`,
-            );
+            warn(`Skill '${skill.name}' already exists, skipping (use --force to replace)`);
             continue;
           }
           const stats = fs.lstatSync(skill.target);
@@ -539,9 +520,7 @@ function install(options = {}) {
 
   if (!skills) {
     console.log("");
-    info(
-      "Tip: Add --skills to also install Agent Skills (auto-loaded by Copilot)",
-    );
+    info("Tip: Add --skills to also install Agent Skills (auto-loaded by Copilot)");
     console.log("  npx perf-prompts install --skills");
   }
 }
@@ -561,9 +540,7 @@ function uninstall(options = {}) {
   const manifest = readManifest(projectRoot);
 
   if (manifest.files.length > 0 || manifest.directories.length > 0) {
-    info(
-      `Removing prompts installed on ${manifest.installedAt || "unknown date"}`,
-    );
+    info(`Removing prompts installed on ${manifest.installedAt || "unknown date"}`);
 
     // Remove prompt files from manifest
     for (const file of manifest.files) {
@@ -600,18 +577,14 @@ function uninstall(options = {}) {
     }
   } else {
     // Fallback: No manifest found, try to detect and remove our files
-    warn(
-      "No manifest found, attempting to detect and remove performance-toolkit prompts",
-    );
+    warn("No manifest found, attempting to detect and remove performance-toolkit prompts");
 
     const context = detectInstallationContext();
-    const effectiveInstallPath =
-      context.installedPath || path.resolve(__dirname, "..");
+    const effectiveInstallPath = context.installedPath || path.resolve(__dirname, "..");
     const packagePromptsPath = getPackagePromptsPath(effectiveInstallPath);
 
     if (fs.existsSync(packagePromptsPath)) {
-      const { promptFiles, directories } =
-        getInstallableItems(packagePromptsPath);
+      const { promptFiles, directories } = getInstallableItems(packagePromptsPath);
 
       // Remove prompt files
       for (const file of promptFiles) {
@@ -792,9 +765,7 @@ function status() {
   }
 
   if (installedSymlinks.length === installedPrompts.length) {
-    success(
-      `Prompts Status: INSTALLED (${installedPrompts.length} symlinked) ✓`,
-    );
+    success(`Prompts Status: INSTALLED (${installedPrompts.length} symlinked) ✓`);
     info("Prompts will auto-update when the package is updated");
   } else if (installedCopies.length === installedPrompts.length) {
     warn(`Prompts Status: INSTALLED (${installedPrompts.length} copied)`);

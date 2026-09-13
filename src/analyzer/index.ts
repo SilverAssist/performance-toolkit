@@ -6,11 +6,7 @@
  * @packageDocumentation
  */
 
-export {
-  ExportAnalyzer,
-  createExportAnalyzer,
-  analyzeExports,
-} from "./analyzer";
+export { ExportAnalyzer, createExportAnalyzer, analyzeExports } from "./analyzer";
 
 export type {
   ExportType,

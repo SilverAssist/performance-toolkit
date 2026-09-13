@@ -210,19 +210,13 @@ function displayResults(result) {
     printSectionHeader("Generated Reports", "📄");
 
     if (result.reports.client) {
-      log(
-        `  Client Bundle: ${COLORS.cyan}${result.reports.client}${COLORS.reset}`,
-      );
+      log(`  Client Bundle: ${COLORS.cyan}${result.reports.client}${COLORS.reset}`);
     }
     if (result.reports.server) {
-      log(
-        `  Server Bundle: ${COLORS.cyan}${result.reports.server}${COLORS.reset}`,
-      );
+      log(`  Server Bundle: ${COLORS.cyan}${result.reports.server}${COLORS.reset}`);
     }
     if (result.reports.edge) {
-      log(
-        `  Edge Runtime:  ${COLORS.cyan}${result.reports.edge}${COLORS.reset}`,
-      );
+      log(`  Edge Runtime:  ${COLORS.cyan}${result.reports.edge}${COLORS.reset}`);
     }
 
     console.log("");
@@ -246,10 +240,7 @@ function displayResults(result) {
 
     console.log("");
 
-    if (
-      result.summary.recommendations &&
-      result.summary.recommendations.length > 0
-    ) {
+    if (result.summary.recommendations && result.summary.recommendations.length > 0) {
       log("  Recommendations:", "bright");
       result.summary.recommendations.forEach((rec, i) => {
         log(`    ${i + 1}. ${rec}`, "dim");

@@ -36,10 +36,7 @@ export class ActionableReportGenerator {
   generate(): ActionableReport {
     const diagnosticsTable = generateDiagnosticsTable(this.result);
     const enhancedLCP = generateEnhancedLCP(this.result, this.context);
-    const keyOpportunities = generateKeyOpportunities(
-      this.result,
-      this.context,
-    );
+    const keyOpportunities = generateKeyOpportunities(this.result, this.context);
     const nextSteps = this.generateNextSteps(keyOpportunities);
     const summary = this.generateSummary(diagnosticsTable, keyOpportunities);
 
@@ -80,8 +77,7 @@ export class ActionableReportGenerator {
     steps.push({
       id: "next-setup-monitoring",
       title: "Set up continuous performance monitoring",
-      description:
-        "Use this toolkit in your CI/CD pipeline to catch regressions early.",
+      description: "Use this toolkit in your CI/CD pipeline to catch regressions early.",
       type: "monitoring",
       urgency: "when-possible",
     });
@@ -91,8 +87,7 @@ export class ActionableReportGenerator {
       steps.push({
         id: "next-perf-testing",
         title: "Add performance tests to CI pipeline",
-        description:
-          "Create performance budgets and fail builds that exceed thresholds.",
+        description: "Create performance budgets and fail builds that exceed thresholds.",
         type: "testing",
         urgency: "soon",
       });

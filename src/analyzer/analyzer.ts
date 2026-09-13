@@ -30,13 +30,7 @@ export class ExportAnalyzer {
   constructor(options: ExportAnalyzerOptions = {}) {
     this.options = {
       projectRoot: options.projectRoot || process.cwd(),
-      includeDirs: options.includeDirs || [
-        "src",
-        "app",
-        "pages",
-        "components",
-        "lib",
-      ],
+      includeDirs: options.includeDirs || ["src", "app", "pages", "components", "lib"],
       excludeDirs: options.excludeDirs || [
         "node_modules",
         "dist",
@@ -66,15 +60,9 @@ export class ExportAnalyzer {
     const summary = this.createSummary(fileAnalyses);
     const filesWithIssues = fileAnalyses.filter((f) => f.issues.length > 0);
 
-    const nextConfig = this.options.analyzeNextConfig
-      ? await this.analyzeNextConfig()
-      : undefined;
+    const nextConfig = this.options.analyzeNextConfig ? await this.analyzeNextConfig() : undefined;
 
-    const recommendations = this.generateRecommendations(
-      summary,
-      filesWithIssues,
-      nextConfig,
-    );
+    const recommendations = this.generateRecommendations(summary, filesWithIssues, nextConfig);
 
     // Detect framework info if available
     const framework = await this.detectFramework();
@@ -213,12 +201,7 @@ export class ExportAnalyzer {
     }
 
     // Detect issues
-    const issues = this.detectIssues(
-      content,
-      exportType,
-      isBarrelFile,
-      reExportType,
-    );
+    const issues = this.detectIssues(content, exportType, isBarrelFile, reExportType);
 
     return {
       path: relativePath,
@@ -237,10 +220,7 @@ export class ExportAnalyzer {
    */
   private countDefaultExports(content: string): number {
     // Match: export default ...
-    const patterns = [
-      /export\s+default\s+/g,
-      /export\s*\{\s*\w+\s+as\s+default\s*\}/g,
-    ];
+    const patterns = [/export\s+default\s+/g, /export\s*\{\s*\w+\s+as\s+default\s*\}/g];
 
     let count = 0;
     for (const pattern of patterns) {
@@ -279,8 +259,7 @@ export class ExportAnalyzer {
     type: ReExportType;
     count: number;
   } {
-    const defaultAsNamedPattern =
-      /export\s*\{\s*default\s+as\s+\w+\s*\}\s*from/g;
+    const defaultAsNamedPattern = /export\s*\{\s*default\s+as\s+\w+\s*\}\s*from/g;
     // Named pattern should NOT match 'default as' patterns
     // Using bounded character class [^}]{1,1000} to prevent ReDoS
     // Then filter out 'default as' matches programmatically
@@ -323,8 +302,7 @@ export class ExportAnalyzer {
       issues.push({
         type: "default-in-barrel",
         severity: "warning",
-        message:
-          "Barrel file (index) uses default export, which can prevent tree-shaking",
+        message: "Barrel file (index) uses default export, which can prevent tree-shaking",
         suggestion:
           'Use named exports instead: "export { MyComponent }" or "export function MyComponent()"',
       });
@@ -349,8 +327,7 @@ export class ExportAnalyzer {
         severity: "info",
         message:
           "File contains both default and named exports, which can reduce tree-shaking predictability",
-        suggestion:
-          "Consider using only named exports for better tree-shaking reliability",
+        suggestion: "Consider using only named exports for better tree-shaking reliability",
       });
     }
 
@@ -359,10 +336,8 @@ export class ExportAnalyzer {
       issues.push({
         type: "namespace-reexport",
         severity: "warning",
-        message:
-          'Using "export * from" prevents static analysis and may include unused exports',
-        suggestion:
-          "Use explicit named re-exports: \"export { Name1, Name2 } from './file'\"",
+        message: 'Using "export * from" prevents static analysis and may include unused exports',
+        suggestion: "Use explicit named re-exports: \"export { Name1, Name2 } from './file'\"",
       });
     }
 
@@ -384,19 +359,16 @@ export class ExportAnalyzer {
       problematicBarrelFiles: analyses.filter(
         (a) =>
           a.isBarrelFile &&
-          (a.reExportType === "default-as-named" ||
-            a.reExportType === "namespace"),
+          (a.reExportType === "default-as-named" || a.reExportType === "namespace"),
       ).length,
       totalIssues: analyses.reduce((sum, a) => sum + a.issues.length, 0),
       issuesBySeverity: {
         warning: analyses.reduce(
-          (sum, a) =>
-            sum + a.issues.filter((i) => i.severity === "warning").length,
+          (sum, a) => sum + a.issues.filter((i) => i.severity === "warning").length,
           0,
         ),
         info: analyses.reduce(
-          (sum, a) =>
-            sum + a.issues.filter((i) => i.severity === "info").length,
+          (sum, a) => sum + a.issues.filter((i) => i.severity === "info").length,
           0,
         ),
       },
@@ -432,16 +404,12 @@ export class ExportAnalyzer {
     }
 
     // Check for optimizePackageImports configuration
-    const hasOptimizePackageImports = content.includes(
-      "optimizePackageImports",
-    );
+    const hasOptimizePackageImports = content.includes("optimizePackageImports");
 
     let optimizedPackages: string[] = [];
     if (hasOptimizePackageImports) {
       // Try to extract package names (simplified regex approach)
-      const match = content.match(
-        /optimizePackageImports\s*:\s*\[([\s\S]*?)\]/,
-      );
+      const match = content.match(/optimizePackageImports\s*:\s*\[([\s\S]*?)\]/);
       if (match) {
         const packageList = match[1];
         const packages = packageList.match(/['"`]([^'"`]+)['"`]/g);
@@ -463,26 +431,19 @@ export class ExportAnalyzer {
       configFound: true,
       configPath,
       hasOptimizePackageImports,
-      optimizedPackages:
-        optimizedPackages.length > 0 ? optimizedPackages : undefined,
-      suggestedPackages:
-        suggestedPackages.length > 0 ? suggestedPackages : undefined,
+      optimizedPackages: optimizedPackages.length > 0 ? optimizedPackages : undefined,
+      suggestedPackages: suggestedPackages.length > 0 ? suggestedPackages : undefined,
     };
   }
 
   /**
    * Detects Next.js framework info
    */
-  private async detectFramework(): Promise<
-    { name: string; version: string } | undefined
-  > {
+  private async detectFramework(): Promise<{ name: string; version: string } | undefined> {
     if (!this.fs || !this.path) return undefined;
 
     try {
-      const packagePath = this.path.join(
-        this.options.projectRoot,
-        "package.json",
-      );
+      const packagePath = this.path.join(this.options.projectRoot, "package.json");
       if (!this.fs.existsSync(packagePath)) return undefined;
 
       const content = this.fs.readFileSync(packagePath, "utf-8");
@@ -491,8 +452,7 @@ export class ExportAnalyzer {
         devDependencies?: Record<string, string>;
       };
 
-      const nextVersion =
-        pkg.dependencies?.["next"] || pkg.devDependencies?.["next"];
+      const nextVersion = pkg.dependencies?.["next"] || pkg.devDependencies?.["next"];
 
       if (nextVersion) {
         return {
@@ -523,8 +483,7 @@ export class ExportAnalyzer {
         .filter(
           (f) =>
             f.isBarrelFile &&
-            (f.reExportType === "default-as-named" ||
-              f.reExportType === "namespace"),
+            (f.reExportType === "default-as-named" || f.reExportType === "namespace"),
         )
         .map((f) => f.path);
 
@@ -566,8 +525,7 @@ export class ExportAnalyzer {
           buildPerformance: "neutral",
         },
         examples: {
-          before:
-            "// ❌ Default export\nexport default function Button() { ... }",
+          before: "// ❌ Default export\nexport default function Button() { ... }",
           after: "// ✅ Named export\nexport function Button() { ... }",
         },
       });
@@ -591,8 +549,7 @@ export class ExportAnalyzer {
           buildPerformance: "improved",
         },
         examples: {
-          before:
-            "// next.config.mjs\nexport default {\n  // no optimization\n};",
+          before: "// next.config.mjs\nexport default {\n  // no optimization\n};",
           after: `// next.config.mjs\nexport default {\n  experimental: {\n    optimizePackageImports: ${JSON.stringify(nextConfig.suggestedPackages, null, 6)}\n  }\n};`,
         },
       });
@@ -620,9 +577,7 @@ export class ExportAnalyzer {
 /**
  * Creates an export analyzer instance
  */
-export function createExportAnalyzer(
-  options?: ExportAnalyzerOptions,
-): ExportAnalyzer {
+export function createExportAnalyzer(options?: ExportAnalyzerOptions): ExportAnalyzer {
   return new ExportAnalyzer(options);
 }
 

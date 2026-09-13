@@ -11,12 +11,7 @@
 // =============================================================================
 
 // Metrics Domain - Core Web Vitals and scores
-export type {
-  MetricValue,
-  MetricRating,
-  CoreWebVitals,
-  CategoryScores,
-} from "./metrics";
+export type { MetricValue, MetricRating, CoreWebVitals, CategoryScores } from "./metrics";
 
 // PageSpeed Domain - API types and responses
 export type {
@@ -34,12 +29,7 @@ export type {
 } from "./pagespeed";
 
 // Lighthouse Domain - LHCI configuration
-export type {
-  LHCIMethod,
-  LHCIOptions,
-  LHCIAssertions,
-  LHCIConfig,
-} from "./lighthouse";
+export type { LHCIMethod, LHCIOptions, LHCIAssertions, LHCIConfig } from "./lighthouse";
 
 // Analysis Domain - Results, diagnostics, insights
 export type {
@@ -63,29 +53,16 @@ export type {
 } from "./analysis";
 
 // Context Domain - Project detection
-export type {
-  FrameworkInfo,
-  ProjectContext,
-  FrameworkSpecificNote,
-} from "./context";
+export type { FrameworkInfo, ProjectContext, FrameworkSpecificNote } from "./context";
 
 // Report Domain - Actionable reports
-export type {
-  KeyOpportunity,
-  ActionStep,
-  NextStep,
-  ActionableReport,
-} from "./report";
+export type { KeyOpportunity, ActionStep, NextStep, ActionableReport } from "./report";
 
 // CLI Domain - Command-line interface
 export type { CLIOptions, ThresholdViolation, CLIResult } from "./cli";
 
 // Config Domain - Thresholds and configuration
-export type {
-  PerformanceThresholds,
-  ProjectConfig,
-  ToolkitConfig,
-} from "./config";
+export type { PerformanceThresholds, ProjectConfig, ToolkitConfig } from "./config";
 
 // Bundle Domain - Bundle analysis
 export type {

@@ -39,11 +39,7 @@ export function extractDetailedInsights(
 
   const cacheIssues = extractCacheIssues(audits);
   const imageIssues = extractImageIssues(audits);
-  const unusedJavaScript = extractUnusedCode(
-    audits,
-    "unused-javascript",
-    hostDomain,
-  );
+  const unusedJavaScript = extractUnusedCode(audits, "unused-javascript", hostDomain);
   const unusedCSS = extractUnusedCode(audits, "unused-css-rules", hostDomain);
   const legacyJavaScript = extractLegacyJavaScript(audits);
   const thirdParties = extractThirdParties(audits);
@@ -134,8 +130,7 @@ export function extractImageIssues(audits: LighthouseAudits): ImageIssue[] {
         wastedBytes: (item.wastedBytes as number) ?? 0,
         issueType: "format",
         recommendation: "Convert to WebP or AVIF format",
-        snippet: (item.node as Record<string, unknown>)?.snippet as
-          string | undefined,
+        snippet: (item.node as Record<string, unknown>)?.snippet as string | undefined,
       });
     }
   }
@@ -155,8 +150,7 @@ export function extractImageIssues(audits: LighthouseAudits): ImageIssue[] {
         wastedBytes: (item.wastedBytes as number) ?? 0,
         issueType: "oversized",
         recommendation: "Serve properly sized images for viewport",
-        snippet: (item.node as Record<string, unknown>)?.snippet as
-          string | undefined,
+        snippet: (item.node as Record<string, unknown>)?.snippet as string | undefined,
       });
     }
   }
@@ -176,8 +170,7 @@ export function extractImageIssues(audits: LighthouseAudits): ImageIssue[] {
         wastedBytes: (item.wastedBytes as number) ?? 0,
         issueType: "offscreen",
         recommendation: "Lazy-load offscreen images with loading='lazy'",
-        snippet: (item.node as Record<string, unknown>)?.snippet as
-          string | undefined,
+        snippet: (item.node as Record<string, unknown>)?.snippet as string | undefined,
       });
     }
   }
@@ -197,8 +190,7 @@ export function extractImageIssues(audits: LighthouseAudits): ImageIssue[] {
         wastedBytes: (item.wastedBytes as number) ?? 0,
         issueType: "unoptimized",
         recommendation: "Compress image or use better optimization",
-        snippet: (item.node as Record<string, unknown>)?.snippet as
-          string | undefined,
+        snippet: (item.node as Record<string, unknown>)?.snippet as string | undefined,
       });
     }
   }
@@ -231,8 +223,7 @@ export function extractUnusedCode(
       url,
       transferSize,
       wastedBytes,
-      wastedPercent:
-        transferSize > 0 ? Math.round((wastedBytes / transferSize) * 100) : 0,
+      wastedPercent: transferSize > 0 ? Math.round((wastedBytes / transferSize) * 100) : 0,
       entity: extractEntityFromUrl(url),
       isFirstParty: isFirstParty(url, hostDomain),
     });
@@ -244,9 +235,7 @@ export function extractUnusedCode(
 /**
  * Extracts legacy JavaScript polyfills
  */
-export function extractLegacyJavaScript(
-  audits: LighthouseAudits,
-): LegacyJSIssue[] {
+export function extractLegacyJavaScript(audits: LighthouseAudits): LegacyJSIssue[] {
   const audit = audits["legacy-javascript"];
   if (!audit?.details?.items) return [];
 
@@ -257,8 +246,7 @@ export function extractLegacyJavaScript(
     const url = item.url as string;
     if (!url) continue;
 
-    const subItems = item.subItems as
-      { items?: Array<{ signal?: string }> } | undefined;
+    const subItems = item.subItems as { items?: Array<{ signal?: string }> } | undefined;
     const polyfills: string[] = [];
 
     if (subItems?.items) {
@@ -283,9 +271,7 @@ export function extractLegacyJavaScript(
 /**
  * Extracts third-party script impact
  */
-export function extractThirdParties(
-  audits: LighthouseAudits,
-): ThirdPartyIssue[] {
+export function extractThirdParties(audits: LighthouseAudits): ThirdPartyIssue[] {
   const audit = audits["third-party-summary"];
   if (!audit?.details?.items) return [];
 
@@ -294,12 +280,10 @@ export function extractThirdParties(
 
   for (const item of items) {
     const entity = item.entity as string | { text?: string } | undefined;
-    const entityName =
-      typeof entity === "string" ? entity : (entity?.text ?? "Unknown");
+    const entityName = typeof entity === "string" ? entity : (entity?.text ?? "Unknown");
 
     // Get URLs from subItems
-    const subItems = item.subItems as
-      { items?: Array<{ url?: string }> } | undefined;
+    const subItems = item.subItems as { items?: Array<{ url?: string }> } | undefined;
     const urls: string[] = [];
     if (subItems?.items) {
       for (const sub of subItems.items) {
@@ -345,9 +329,7 @@ export function extractLongTasks(audits: LighthouseAudits): LongTask[] {
 /**
  * Extracts render-blocking resources
  */
-export function extractRenderBlockingResources(
-  audits: LighthouseAudits,
-): RenderBlockingResource[] {
+export function extractRenderBlockingResources(audits: LighthouseAudits): RenderBlockingResource[] {
   const audit = audits["render-blocking-resources"];
   if (!audit?.details?.items) return [];
 
@@ -379,9 +361,7 @@ export function extractRenderBlockingResources(
 /**
  * Extracts LCP timing breakdown
  */
-export function extractLCPBreakdown(
-  audits: LighthouseAudits,
-): LCPBreakdown | undefined {
+export function extractLCPBreakdown(audits: LighthouseAudits): LCPBreakdown | undefined {
   const lcpAudit = audits["largest-contentful-paint"];
   if (!lcpAudit?.numericValue) return undefined;
 

@@ -6,12 +6,7 @@
  * @packageDocumentation
  */
 
-import type {
-  LHCIAssertions,
-  LHCIConfig,
-  LHCIOptions,
-  PerformanceThresholds,
-} from "../types";
+import type { LHCIAssertions, LHCIConfig, LHCIOptions, PerformanceThresholds } from "../types";
 
 /**
  * Lighthouse CI Runner for programmatic execution
@@ -83,10 +78,7 @@ export class LighthouseRunner {
     const assertions: LHCIAssertions = {};
 
     if (thresholds.performance !== undefined) {
-      assertions["categories:performance"] = [
-        "error",
-        { minScore: thresholds.performance / 100 },
-      ];
+      assertions["categories:performance"] = ["error", { minScore: thresholds.performance / 100 }];
     }
     if (thresholds.accessibility !== undefined) {
       assertions["categories:accessibility"] = [
@@ -101,34 +93,19 @@ export class LighthouseRunner {
       ];
     }
     if (thresholds.seo !== undefined) {
-      assertions["categories:seo"] = [
-        "error",
-        { minScore: thresholds.seo / 100 },
-      ];
+      assertions["categories:seo"] = ["error", { minScore: thresholds.seo / 100 }];
     }
     if (thresholds.lcp !== undefined) {
-      assertions["largest-contentful-paint"] = [
-        "error",
-        { maxNumericValue: thresholds.lcp },
-      ];
+      assertions["largest-contentful-paint"] = ["error", { maxNumericValue: thresholds.lcp }];
     }
     if (thresholds.fcp !== undefined) {
-      assertions["first-contentful-paint"] = [
-        "error",
-        { maxNumericValue: thresholds.fcp },
-      ];
+      assertions["first-contentful-paint"] = ["error", { maxNumericValue: thresholds.fcp }];
     }
     if (thresholds.cls !== undefined) {
-      assertions["cumulative-layout-shift"] = [
-        "error",
-        { maxNumericValue: thresholds.cls },
-      ];
+      assertions["cumulative-layout-shift"] = ["error", { maxNumericValue: thresholds.cls }];
     }
     if (thresholds.tbt !== undefined) {
-      assertions["total-blocking-time"] = [
-        "error",
-        { maxNumericValue: thresholds.tbt },
-      ];
+      assertions["total-blocking-time"] = ["error", { maxNumericValue: thresholds.tbt }];
     }
 
     this.config.ci.assert = { assertions };

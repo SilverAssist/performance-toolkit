@@ -26,8 +26,7 @@ export function detectLCPType(
   if (tag === "img") return "image";
   if (tag === "video") return "video";
   if (tag === "svg") return "image";
-  if (lcpElement.url?.match(/\.(jpg|jpeg|png|gif|webp|avif|svg)/i))
-    return "background-image";
+  if (lcpElement.url?.match(/\.(jpg|jpeg|png|gif|webp|avif|svg)/i)) return "background-image";
   if (["h1", "h2", "h3", "p", "span", "div"].includes(tag)) return "text";
 
   return "unknown";
@@ -43,8 +42,7 @@ export function detectLoadingMechanism(
 
   const snippet = lcpElement.snippet.toLowerCase();
   if (snippet.includes('loading="lazy"')) return "lazy";
-  if (snippet.includes("fetchpriority") || snippet.includes("priority"))
-    return "priority";
+  if (snippet.includes("fetchpriority") || snippet.includes("priority")) return "priority";
   if (snippet.includes("defer")) return "deferred";
 
   return "eager";
@@ -66,8 +64,7 @@ export function generateLCPRecommendations(
     recommendations.push({
       id: "lcp-priority-hint",
       title: "Add priority hint to LCP image",
-      description:
-        'Use fetchpriority="high" on the LCP image to prioritize its loading.',
+      description: 'Use fetchpriority="high" on the LCP image to prioritize its loading.',
       impact: "high",
       effort: "easy",
       codeHints: ['<img src="..." fetchpriority="high" />'],
@@ -77,8 +74,7 @@ export function generateLCPRecommendations(
       recommendations.push({
         id: "lcp-next-image-priority",
         title: "Use Next.js Image with priority",
-        description:
-          "Use next/image component with priority prop for the LCP image.",
+        description: "Use next/image component with priority prop for the LCP image.",
         impact: "high",
         effort: "easy",
         codeHints: ['<Image src="..." priority />'],

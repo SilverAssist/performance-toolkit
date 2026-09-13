@@ -18,8 +18,7 @@ export type Strategy = "mobile" | "desktop";
 /**
  * PageSpeed analysis category
  */
-export type Category =
-  "performance" | "accessibility" | "best-practices" | "seo";
+export type Category = "performance" | "accessibility" | "best-practices" | "seo";
 
 // =============================================================================
 // Request Types
@@ -152,8 +151,7 @@ export interface LighthouseAudit {
   /** Score from 0 to 1, or null if not applicable */
   score: number | null;
   /** Score display mode */
-  scoreDisplayMode:
-    "numeric" | "binary" | "informative" | "notApplicable" | "manual" | "error";
+  scoreDisplayMode: "numeric" | "binary" | "informative" | "notApplicable" | "manual" | "error";
   /** Display value (e.g., "2.5 s") */
   displayValue?: string;
   /** Numeric value */

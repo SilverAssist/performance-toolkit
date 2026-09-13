@@ -107,10 +107,7 @@ export class PageSpeedClient {
   /**
    * Fetches URL with timeout using AbortController
    */
-  private async fetchWithTimeout(
-    url: string,
-    timeout: number,
-  ): Promise<Response> {
+  private async fetchWithTimeout(url: string, timeout: number): Promise<Response> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -118,9 +115,7 @@ export class PageSpeedClient {
       const response = await fetch(url, { signal: controller.signal });
 
       if (!response.ok) {
-        throw new Error(
-          `PageSpeed API error: ${response.status} ${response.statusText}`,
-        );
+        throw new Error(`PageSpeed API error: ${response.status} ${response.statusText}`);
       }
 
       return response;

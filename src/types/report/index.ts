@@ -6,11 +6,7 @@
  * @packageDocumentation
  */
 
-import type {
-  EnhancedLCPElement,
-  DiagnosticItem,
-  PerformanceResult,
-} from "../analysis";
+import type { EnhancedLCPElement, DiagnosticItem, PerformanceResult } from "../analysis";
 import type { ProjectContext, FrameworkSpecificNote } from "../context";
 
 // =============================================================================
@@ -84,12 +80,7 @@ export interface NextStep {
   /** Description */
   description: string;
   /** Type of action */
-  type:
-    | "code-change"
-    | "config-change"
-    | "investigation"
-    | "monitoring"
-    | "testing";
+  type: "code-change" | "config-change" | "investigation" | "monitoring" | "testing";
   /** Urgency level */
   urgency: "immediate" | "soon" | "when-possible";
   /** Files likely to be modified */

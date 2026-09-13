@@ -9,8 +9,7 @@
 import type { Category } from "../types";
 
 /** PageSpeed Insights API base URL */
-export const PSI_API_URL =
-  "https://www.googleapis.com/pagespeedonline/v5/runPagespeed";
+export const PSI_API_URL = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed";
 
 /** Default request timeout in milliseconds */
 export const DEFAULT_TIMEOUT = 60000;
